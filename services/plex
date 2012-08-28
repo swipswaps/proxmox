@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# get keyring: http://plexapp.com/repo/pool/main/p/plex-archive-keyring/
+wget http://plexapp.com/repo/pool/main/p/plex-archive-keyring/plex-archive-keyring_2.0.0_all.deb
+
+# install it
+dpkg -i plex-archive-keyring_2.0.0_all.deb
+apt-get update
+apt-get upgrade -y
+
+# add source location
+cat >> /etc/apt/sources.list <<EOF
+deb http://www.plexapp.com/repo lucid main
+EOF
+
+apt-get update
+apt-get upgrade -y
+
+# install plexmedia server
+apt-get install plexmediaserver -y
+
+# go to web interface
+echo "Use web interface to configure everything"
+echo "http://IP-ADDRESS:32400/manage/index.html"

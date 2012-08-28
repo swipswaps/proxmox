@@ -1,0 +1,23 @@
+d# /etc/fstab
+cat >> /etc/fstab <<EOF
+/dev/sda1 /mnt/storage ext4 defaults 0 2
+EOF
+mkdir -p /mnt/storage
+mount -a
+vzrestore /mnt/storage/backup/proxmox/dump/vzdump-openvz-100-2012_08_03-17_44_44.tar.gz 100
+vzrestore /mnt/storage/backup/proxmox/dump/vzdump-openvz-101-2012_08_03-17_46_55.tar.gz 101
+vzrestore /mnt/storage/backup/proxmox/dump/vzdump-openvz-900-2012_08_03-17_49_31.tar.gz 900
+vzrestore /mnt/storage/backup/proxmox/dump/vzdump-openvz-901-2012_08_03-17_50_58.tar.gz 901
+
+vzctl start 100
+vzctl start 101
+
+
+
+root@proxmox:/etc/pve/nodes/proxmox/openvz# cat 100.mount 
+#!/bin/bash
+source /etc/vz/vz.conf
+source ${VE_CONFFILE}
+mount -n --bind /mnt/storage ${VE_ROOT}/storage
+
+
