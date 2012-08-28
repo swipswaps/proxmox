@@ -1,0 +1,163 @@
+## RAID Setup
+2x raid1 volumes(SDA, SDB)
+This is done via PERC H200 (hardware raid)
+
+# install proxmox on to SDA
+This is very simple follow on screen instructions
+
+# give it the root key
+mkdir -p /root/.ssh/
+# add root key here
+
+## Setup /dev/SDB
+# create a primary partition on SDB
+fdisk /dev/SDB
+
+# format it
+mkfs.ext4 /dev/SDB1 
+
+# create mount point
+mkdir /backup
+
+# add to /etc/fstab
+cat "/dev/SDB1 /backup ext4 defaults 0 2" >> /etc/fstab
+
+
+## Add to cluster
+# this portion is option
+
+# from machine you want to add to the cluster
+pvecm add <ip of one machine already in cluster>
+
+
+## Adding dell server admin tools
+echo 'deb http://linux.dell.com/repo/community/deb/latest /' | tee -a /etc/apt/sources.list.d/linux.dell.com.sources.list
+gpg --keyserver pool.sks-keyservers.net --recv-key 1285491434D8786F
+gpg -a --export 1285491434D8786F | apt-key add -
+aptitude update
+aptitude install -y srvadmin-all
+update-rc.d dsm_om_connsvc defaults
+/opt/dell/srvadmin/sbin/srvadmin-services.sh start
+# start webserver everytime the machine starts
+sed '/exit 0/ i\
+/etc/init.d/dsm_om_connsvc start' /etc/rc.local > /var/tmp/rc.local
+mv /var/tmp/rc.local /etc/
+
+# Settings may be stored here: 
+	/opt/dell/srvadmin/etc/openmanage/oma/ini
+	/opt/dell/srvadmin/etc/openmanage/oma/ini/oma.properties		# has smtp server settings
+	/opt/dell/srvadmin/etc/openmanage/oma/ini/omsacli.ini 		# seems to have the settings that enable email and notifcation for disk failures and such
+
+# -> think about creating a deb out of a preconfigured srvadmin
+# or insert ini files into existing installation.
+
+
+# setting up the dell server admin
+web server runs on port 1311 -> https://<IP or hostname>:1311
+login as root with the hosts root password
+ignore the warning "Browser type is not supported." And click 'Try Again'
+
+Click on Preferences top right.
+	General Settings, left pane
+		Configure the following settings
+			Mail To: root@cs.uchicago.edu
+			SMTP Server: smtp.cs.uchicago.edu
+			DNS Suffix for SMTP Server: cs.uchicago.edu
+			Custom Delimiter: [|] # a pipe
+
+Click on Home
+	Click 'System' on the left
+		'Alert Management' tab
+			Set 'Alert on Console' and 'Broadcast Message' to 'On' for the following:
+				* These are the most critical
+				Power Supply Critical
+				Temperature Probe Warning
+				Temperature Probe Detects a Failure
+				Fan Probe Detects a Failure
+				Voltage Probe Detects A Failure
+				Memory Pre-failure
+				Memory Failure
+				Processor Warning
+				Processor Failure
+				Power Supply Warning
+				System Peak Power
+				* Storage System Warning/Failure
+				* Storage Controller Warning/Failure
+				* Physical Disk Warning/Failure
+				* Virtual Disk Warning/Failure
+
+## From the webgui
+Login in via https://<IP or hostname>:8006
+
+# Storage backup setup
+Click on 'Datacenter' on the left
+	Click 'Storage' tab in the middle
+		Add -> Directory
+			ID: backup
+			Directory: /backup
+			Content: Backups
+			Nodes: All
+			Enable: True
+			Shared: False
+			Max Backups: 5 -> Be carefull with this number.
+
+# Backup schedule setup
+Click on 'Datacenter' on the left
+	Click on 'Backup' tab in the middle
+		Add
+			Node: <current node>
+			Storage: backup
+			Day of Week: Tuesday and Saturday
+			Start Time: 00:00
+			Selection Mode: All
+			Send Email To: root@cs.uchicago.edu
+			Compression: GZIP (good)
+			Mode: Snapshot
+
+## Authentication
+this only need to be done if either 
+	a) this machine is not being added to a cluster
+	b) is the first machine in a cluster
+These settings will propagate out to all other nodes once
+added to a cluster.
+
+Click on 'Datacenter' on the left
+	Click on 'Authentication' in the middle
+		Add -> Active Directory Server
+			Realm: adlocal
+			Domain: ad.local
+			Comment: UofC Active Directory (ad.local)
+			Default: True
+			Server: ucadlocal00.ad.local
+			Fallback Server: ucadlocal01.ad.local
+			Port: Default
+			SSL: True
+
+Click on 'Datacenter' on the left
+	Click on 'Groups'
+		Create
+			Name: Techstaff
+			Comment: Techstaff
+
+Click on 'Datacenter' on the left
+	Click on 'Permissions'
+		Add -> Group Permission
+			Path: /
+			Group: Techstaff
+			Role: Administrator
+			Propagate: True
+
+Click on 'Datacenter' on the left
+	Click on 'Users'
+		Add
+			User name: <cnet id>
+			Realm: UofC Active Direcotry (ad.local)
+			Group: Techstaff
+			Expire: never
+			Enabled: True
+			First Name: <Users First Name>
+			Last Name: <Users Last Name>
+			Email: <Users Prefered Email>
+			Comment: <Usually I put the groups they are associated with here>
+
+
