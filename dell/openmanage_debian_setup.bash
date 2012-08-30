@@ -18,3 +18,27 @@ for m in `omconfig system alertaction -? | awk '{print $1}' | grep event`
 do
 	omconfig system alertaction $m alert=true broadcast=true
 done
+
+# email settings
+cat > /opt/dell/srvadmin/etc/openmanage/oma/ini/oma.properties <<EOF
+preferences.system.scheme=
+preferences.root.skin=modern
+preferences.system.skin=modern
+preferences.root.scheme=
+preferences.system.smtp=smtp.cs.uchicago.edu
+preferences.system.customdelimiter=pipe
+preferences.root.to=root@cs.uchicago.edu
+preferences.system.dnssuffix=cs.uchicago.edu
+EOF
+# Enable administrator access only.
+omconfig preferences useraccess enable=admin
+
+# CDV format delimiter
+# delimiter=<exclamation|semicolon|at|hash|dollar|caret|asterisk|tilde|question|comma|pipe>
+omconfig preferences cdvformat delimiter=pipe
+
+# bios settings
+# omconfig chassis biossetup -?
+
+# remoteaccess -> idrac configuration
+# omconfig chassis remoteaccess -?
