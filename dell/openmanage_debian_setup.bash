@@ -12,3 +12,9 @@ update-rc.d dsm_om_connsvc defaults
 sed '/exit 0/ i\
 /etc/init.d/dsm_om_connsvc start' /etc/rc.local > /var/tmp/rc.local
 mv /var/tmp/rc.local /etc/
+
+# set settings
+for m in `omconfig system alertaction -? | awk '{print $1}' | grep event`
+do
+	omconfig system alertaction $m alert=true broadcast=true
+done

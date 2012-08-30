@@ -9,6 +9,9 @@ This is very simple follow on screen instructions
 mkdir -p /root/.ssh/
 # add root key here
 
+# updates!
+aptitude update && aptitude full-upgrade -y
+
 ## Setup /dev/SDB
 # create a primary partition on SDB
 fdisk /dev/SDB
