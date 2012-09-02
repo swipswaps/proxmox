@@ -29,11 +29,26 @@ cat "/dev/sdb1 /backup ext4 defaults 0 2" >> /etc/fstab
 cat /etc/ssh/sshd_config | sed 's/PermitRootLogin yes/PermitRootLogin without-password/' > /var/tmp/sshd_configmv 
 mv /var/tmp/sshd_config /etc/ssh/sshd_config
 
+# domain authentication
+cat > /etc/pve/domains.cfg <<EOF
+ad: adlocal
+        comment UofC Active Directory (ad.local)
+        domain ad.local
+        server1 ucad00.ad.uchicago.edu
+        server2 ucad01.ad.uchicago.edu
+        secure
+        default
+EOF
+
+
 # setup storage and user config
 cat > /etc/pve/user.cfg <<EOF
+user:kauffman@adlocal:1:0:Phil:Kauffman:kauffman@cs.uchicago.edu:Techstaff:
+user:chudler@adlocal:1:0:Colin:Hudler:chudler@cs.uchicago.edu:Techstaff:
 user:root@pam:1:0:::root@cs.uchicago.edu::
+user:rdb@adlocal:1:0:Bob:Bartlett:rdb@cs.uchicago.edu:Techstaff:
 
-group:techstaff::Techstaff:
+group:techstaff:kauffman@adlocal,chudler@adlocal,rdb@adlocal:Techstaff:
 
 
 
