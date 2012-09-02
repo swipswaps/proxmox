@@ -1,9 +1,9 @@
 ## RAID Setup
-2x raid1 volumes(SDA, SDB)
-This is done via PERC H200 (hardware raid)
+# 2x raid1 volumes(sda, sdb)
+# This is done via PERC H200 (hardware raid)
 
-# install proxmox on to SDA
-This is very simple follow on screen instructions
+# install proxmox on to sda
+# This is very simple follow on screen instructions
 
 # give it the root key
 mkdir -p /root/.ssh/
@@ -12,19 +12,87 @@ mkdir -p /root/.ssh/
 # updates!
 aptitude update && aptitude full-upgrade -y
 
-## Setup /dev/SDB
-# create a primary partition on SDB
-fdisk /dev/SDB
+## Setup /dev/sdb
+# create a primary partition on sdb
+fdisk /dev/sdb
 
 # format it
-mkfs.ext4 /dev/SDB1 
+mkfs.ext4 /dev/sdb1 
 
 # create mount point
 mkdir /backup
 
 # add to /etc/fstab
-cat "/dev/SDB1 /backup ext4 defaults 0 2" >> /etc/fstab
+cat "/dev/sdb1 /backup ext4 defaults 0 2" >> /etc/fstab
 
+# sshd_config setup
+cat /etc/ssh/sshd_config | sed 's/PermitRootLogin yes/PermitRootLogin without-password/' > /var/tmp/sshd_configmv 
+mv /var/tmp/sshd_config /etc/ssh/sshd_config
+
+# setup storage and user config
+cat > /etc/pve/user.cfg <<EOF
+user:root@pam:1:0:::root@cs.uchicago.edu::
+
+group:techstaff::Techstaff:
+
+
+
+acl:1:/:@techstaff:Administrator:
+EOF
+
+cat > /etc/pve/storage.cfg <<EOF
+dir: local
+        path /var/lib/vz
+        content images
+        maxfiles 0
+
+dir: local-backups
+        path /backup
+        content backup
+        maxfiles 5
+
+nfs: network-backup
+        path /mnt/pve/network-backup
+        server 128.135.164.124
+        export /mnt/backup/proxmox/hinds/epl
+        options vers=3
+        content backup
+        maxfiles 5
+
+nfs: network-iso-template
+        path /mnt/pve/network-iso-template
+        server liverpool.cs.uchicago.edu
+        export /mnt/shares/proxmox
+        options vers=3
+        content iso,vztmpl
+        maxfiles 0
+EOF
+
+cat > /etc/pve/datacenter.cfg <<EOF
+keyboard: en-us
+EOF
+
+cat > /etc/pve/vzdump.cron <<EOF
+# cluster wide vzdump cron schedule
+# Atomatically generated file - do not edit
+
+PATH="/usr/sbin:/usr/bin:/sbin:/bin"
+
+0 1 * * 2,6         root vzdump --quiet 1 --mode snapshot --mailto root@cs.uchicago.edu --all 1 --compress gzip --storage local-backups
+0 1 * * 4,7         root vzdump --quiet 1 --mode snapshot --mailto root@cs.uchicago.edu --all 1 --compress gzip --storage network-backup
+EOF
+
+
+
+
+
+
+# exit script
+exit 0
+
+
+
+# everything below is a comment
 
 ## Add to cluster
 # this portion is option
@@ -32,62 +100,13 @@ cat "/dev/SDB1 /backup ext4 defaults 0 2" >> /etc/fstab
 # from machine you want to add to the cluster
 pvecm add <ip of one machine already in cluster>
 
-
-## Adding dell server admin tools
-echo 'deb http://linux.dell.com/repo/community/deb/latest /' | tee -a /etc/apt/sources.list.d/linux.dell.com.sources.list
-gpg --keyserver pool.sks-keyservers.net --recv-key 1285491434D8786F
-gpg -a --export 1285491434D8786F | apt-key add -
-aptitude update
-aptitude install -y srvadmin-all
-update-rc.d dsm_om_connsvc defaults
-/opt/dell/srvadmin/sbin/srvadmin-services.sh start
-# start webserver everytime the machine starts
-sed '/exit 0/ i\
-/etc/init.d/dsm_om_connsvc start' /etc/rc.local > /var/tmp/rc.local
-mv /var/tmp/rc.local /etc/
-
-# Settings may be stored here: 
-	/opt/dell/srvadmin/etc/openmanage/oma/ini
-	/opt/dell/srvadmin/etc/openmanage/oma/ini/oma.properties		# has smtp server settings
-	/opt/dell/srvadmin/etc/openmanage/oma/ini/omsacli.ini 		# seems to have the settings that enable email and notifcation for disk failures and such
-
-# -> think about creating a deb out of a preconfigured srvadmin
-# or insert ini files into existing installation.
-
+# run the dell_openmanage install script
 
 # setting up the dell server admin
-web server runs on port 1311 -> https://<IP or hostname>:1311
-login as root with the hosts root password
-ignore the warning "Browser type is not supported." And click 'Try Again'
+#web server runs on port 1311 -> https://<IP or hostname>:1311
+#login as root with the hosts root password
+#ignore the warning "Browser type is not supported." And click 'Try Again'
 
-Click on Preferences top right.
-	General Settings, left pane
-		Configure the following settings
-			Mail To: root@cs.uchicago.edu
-			SMTP Server: smtp.cs.uchicago.edu
-			DNS Suffix for SMTP Server: cs.uchicago.edu
-			Custom Delimiter: [|] # a pipe
-
-Click on Home
-	Click 'System' on the left
-		'Alert Management' tab
-			Set 'Alert on Console' and 'Broadcast Message' to 'On' for the following:
-				* These are the most critical
-				Power Supply Critical
-				Temperature Probe Warning
-				Temperature Probe Detects a Failure
-				Fan Probe Detects a Failure
-				Voltage Probe Detects A Failure
-				Memory Pre-failure
-				Memory Failure
-				Processor Warning
-				Processor Failure
-				Power Supply Warning
-				System Peak Power
-				* Storage System Warning/Failure
-				* Storage Controller Warning/Failure
-				* Physical Disk Warning/Failure
-				* Virtual Disk Warning/Failure
 
 ## From the webgui
 Login in via https://<IP or hostname>:8006
