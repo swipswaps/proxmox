@@ -13,11 +13,18 @@ sed '/exit 0/ i\
 /etc/init.d/dsm_om_connsvc start' /etc/rc.local > /var/tmp/rc.local
 mv /var/tmp/rc.local /etc/
 
+# reboot the system
+reboot
+
 # set settings
 for m in `omconfig system alertaction -? | awk '{print $1}' | grep event`
 do
 	omconfig system alertaction $m alert=true broadcast=true
 done
+
+# enable platform event alerts
+omconfig system platformevents alertsenable=true
+
 
 # email settings
 cat > /opt/dell/srvadmin/etc/openmanage/oma/ini/oma.properties <<EOF
@@ -36,6 +43,7 @@ omconfig preferences useraccess enable=admin
 # CDV format delimiter
 # delimiter=<exclamation|semicolon|at|hash|dollar|caret|asterisk|tilde|question|comma|pipe>
 omconfig preferences cdvformat delimiter=pipe
+
 
 # bios settings
 # omconfig chassis biossetup -?
