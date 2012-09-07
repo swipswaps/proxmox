@@ -40,8 +40,8 @@ ad: adlocal
         default
 EOF
 
-
 # setup storage and user config
+# spaces are important, do not remove new lines!!!
 cat > /etc/pve/user.cfg <<EOF
 user:kauffman@adlocal:1:0:Phil:Kauffman:kauffman@cs.uchicago.edu:Techstaff:
 user:chudler@adlocal:1:0:Colin:Hudler:chudler@cs.uchicago.edu:Techstaff:
@@ -96,10 +96,6 @@ PATH="/usr/sbin:/usr/bin:/sbin:/bin"
 0 1 * * 2,6         root vzdump --quiet 1 --mode snapshot --mailto root@cs.uchicago.edu --all 1 --compress gzip --storage local-backups
 0 1 * * 4,7         root vzdump --quiet 1 --mode snapshot --mailto root@cs.uchicago.edu --all 1 --compress gzip --storage network-backup
 EOF
-
-
-
-
 
 
 # exit script

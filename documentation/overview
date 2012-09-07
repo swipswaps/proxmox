@@ -1,0 +1,104 @@
+This document describes all the moving parts of the Proxmox setup.
+
+Proxmox is a virtualization hypervisor, much like vmware esxi or xen server.
+It is a minimal build of debian squeeze with a custom kernel that integrates openvz.
+A web interface (https://IP:8006) can be used to manage all of your virtual machines.
+Openvz and KVM are two virtualization services that Proxmox supports. So you can run
+the same types of VMs using KVM that you may be used to on VMWare or Xen using KVM.
+
+Proxmox's and openvz's forums are an OK resource for obtaining answers to questions.
+Normally, a quick google search is sufficient to find simple solutions. Though, anything
+outside of the general scope of knowledge and you will be on your own to find it out.
+Your first step should be to consult these documents. These should answer most of your
+questions.
+
+
+# What is OpenVZ?
+OpenVZ is a directory that contains the files for a complete operating system, minus
+the kernel. When an OpenVZ container runs it uses the kernel from the Proxmox server.
+As you may already realize, this allows each virtual machine to have an extremely small
+footprint. You could potentially have hundreds of OpenVZ containers running on one server.
+
+With OpenVZ there are a few things to be aware of: As I already stated, it does not have its
+own kernel, so if you need a specific kernel use KVM. It also imports /dev from the host and
+does not always do so properly. I believe I have fixed this by building a Ubuntu 12.04 template
+from scratch.
+
+# What is KVM?
+Seriously? ;)
+See any other virtualiztion software. The hard drive is a file of a certain size. Usually, it is
+a VMDK, vdi, hdd, or a vhd. In this case KVM uses qcow2 (allows live migration), raw
+and VMDK (you can import your VMs from VMWare!).
+
+# Live migration?
+You need reliable network storage to set this up properly. This is where I eventually want to
+be storing our VMs. However, iSCSI has been unreliable and running VMs on an NFS share does not
+allow you to do snapshoted backups. Meaning the VM will be suspended for a period of time while
+the backup takes place.
+
+# Clustering
+Clustering Proxmox nodes is a nice feature of Proxmox. Once nodes are clustered, they will 
+share their configuration files. It also allows live migration between nodes provided you have
+the correct network file server backend. 
+Removing a node from a cluster is a huge pain in the... well just try avoid this. Consult the 
+Proxmox wiki for instructions on how to do this.
+
+# OUR SETUP!
+
+Proxmox servers as of 9/7/2012
+chelsea, arsenal -> subnet 164
+manchester -> subnet 164, legacy setup needs to be phased out and migrated to the above 
+					servers.
+astonvilla -> subnet 11
+
+Backup NFS Servers
+liverpool
+	Running FreeNAS 8.2
+	No reason this couldn't be running Ubuntu. I may just switch it to running Proxmox since
+	we now have hard drive monitoring for the R310s.
+
+	I think I might install Proxmox on this server and run an NFS server from an OpenVZ 
+container.
+
+everton
+	Running FreeNAS 8.0.x
+	Holding backups for legacy Proxmox servers. The I/O is extremely slow on this
+	server and should not be depended on for fast backups or restores.
+
+Notes: 
+	Port 9 and 11 on the switch in the first rack are bonded with 802.3ad. 
+
+
+
+Each node is setup like this: 
+Also see 'Proxmox_install' for complete setup instructions
+
+R310
+	PERC H200
+		4x 500gb drives
+			sda - Raid1 (hdd0 & hdd1)
+			sdb - Raid1 (hdd2 & hdd3)
+	Enterprise iDRAC 6
+		hostname-sp.cs.uchicago.edu
+		This usually only works with safari or internet explorer. Blame windows...
+
+	Dell OpenManage Manager
+		hostname.cs.uchicago.edu:1311
+		This will help you configure alert emails for when things go wrong with the node.
+		For example, disk failure, fan failure, processor overheating...
+		Command line tool: omconfig
+
+sda
+	Has the main proxmox installation and where running VM's reside
+
+sdb
+	is mounted on sda at /backup
+
+Here is an overview of mounted devices:
+root@chelsea:~# df -h | grep backup
+/dev/sdb1             458G  198M  435G   1% /backup
+128.135.164.124:/mnt/backup/proxmox/hinds/epl
+                      917G   14G  831G   2% /mnt/pve/network-backup
+
+Both directories can be added automatically during setup via the script mentioned
+earlier.
