@@ -1,0 +1,78 @@
+# source: https://help.ubuntu.com/12.04/installation-guide/powerpc/linux-upgrade.html
+# source: http://blog.bodhizazen.net/linux/ubuntu-10-04-openvz-templates/
+
+# install debootstrap from ubuntu deb
+wget http://archive.ubuntu.com/ubuntu/pool/main/d/debootstrap/debootstrap_1.0.42_all.deb
+dpkg -i debootstrap_1.0.42_all.deb
+
+# create a directory in which you wish to 'install' ubuntu. These will be the files that will be
+# used for the openvz container template
+
+working-dir="~/ubuntu-12.04-amd64_openvz-template"
+
+mkdir $working-dir
+
+# install ubuntu base to $working-dir
+/usr/sbin/debootstrap --arch amd64 precise $working-dir
+
+# wait for install to finish
+
+# chroot into your new environment! :)
+LANG=C chroot $working-dir /bin/bash
+export TERM=xterm-color
+
+# create device files
+cd /dev
+MAKEDEV generic
+cd ~/
+
+# configure fstab
+# this may not be needed
+cat > /etc/fstab <<EOF
+proc  /proc       proc    defaults    0    0
+none  /dev/pts    devpts  rw,gid=5,mode=620    0    0
+none  /run/shm    tmpfs   defaults    0    0
+EOF
+
+# full upgrade
+apt-get update
+apt-get dist-upgrade -y
+
+# rsyslog cause the cpu to go to 100% :(
+apt-get install syslog-ng -y
+apt-get remove rsyslog -y
+
+# set locale
+locale-gen en_US
+locale-gen en_US.UTF-8
+dpkg-reconfigure locales
+
+# set timezone
+dpkg-reconfigure tzdata
+
+# configure apt
+cat > /etc/apt/sources.list <<EOF
+deb http://archive.ubuntu.com/ubuntu precise main restricted universe
+deb http://archive.ubuntu.com/ubuntu precise-updates main restricted universe
+deb http://archive.ubuntu.com/ubuntu precise-security main restricted universe
+EOF
+
+# install tasksel
+apt-get install tasksel -y
+tasksel install standard
+apt-get install ssh -y
+
+# remove unnecessary files
+apt-get autoremove
+apt-get autoclean
+apt-get clean
+
+# exit the chroot
+exit
+
+# go to working dir and create a tar.gz of it for use with a template
+cd $working-dir
+
+tar -czvf ~/ubuntu-12.04-amd64_openvz.tar.gz .
+
+# this tar.gz can then be uploaded to the proxmox server as a new template.
