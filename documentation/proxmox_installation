@@ -55,6 +55,8 @@ group:techstaff:kauffman@adlocal,chudler@adlocal,rdb@adlocal:Techstaff:
 acl:1:/:@techstaff:Administrator:
 EOF
 
+# 128.135.164.124 is liverpool.cs.uchicago.edu
+# I'm using the IP so it still works without DNS
 cat > /etc/pve/storage.cfg <<EOF
 dir: local
         path /var/lib/vz
@@ -76,7 +78,7 @@ nfs: network-backup
 
 nfs: network-iso-template
         path /mnt/pve/network-iso-template
-        server liverpool.cs.uchicago.edu
+        server 128.135.164.124
         export /mnt/shares/proxmox
         options vers=3
         content iso,vztmpl
@@ -105,11 +107,14 @@ exit 0
 
 # everything below is a comment
 
+# these instructions show you how to do everything manually in place of the
+# script above
+
 ## Add to cluster
 # this portion is option
 
 # from machine you want to add to the cluster
-pvecm add <ip of one machine already in cluster>
+# pvecm add <ip of one machine already in cluster>
 
 # run the dell_openmanage install script
 

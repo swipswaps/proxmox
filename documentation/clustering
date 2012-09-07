@@ -1,0 +1,11 @@
+# Creating a cluster
+pvecm create <clustername>
+
+# Adding a node to a cluster
+# from the machine you want to add
+pvecm add <ip of the machine already in the cluster>
+
+# Removing a node from a cluster
+# be careful with this. If you remove a node, you need to make
+# it never comes online again.
+pvecm delnode <node>
