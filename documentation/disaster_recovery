@@ -1,0 +1,85 @@
+What you should know before you start:
+	Where are backups stored?
+		network backups: liverpool.cs.uchicago.edu
+			all backups are stored here.
+
+		local per node backups: on sdb1 -> /backup
+			The only backups stored here are the backups of the hosts on the particular node.
+			OR... any host that was at one point stored on this node.
+
+Recovering from one node failure:
+
+1.) Find out which nodes need to be restored.
+
+function on rserver:
+proxmox () 
+{ 
+    for n in manchester chelsea arsenal astonvilla
+    do
+        echo $n;
+        ssh -oBatchMode=yes $n "PATH=\$PATH:/opt/techstaff/bin; $1";
+    done
+}
+
+Run this command from 'rserver': 
+	proxmox 'vzlist && qm list'
+
+This will show you the CTID and VMIDs (here CTID and VMID are essentially the same thing) of all hosts that rserver can ssh into.
+So in theory a hosed system will not display its nodes.
+
+Create a list of the nodes you need to restore. You only need the VMID of the node you wish to restore.
+Which should be all the IDs that dont exist in the list of running VMs. These can be found on the
+network backup server.
+
+Either setup a new node and add it to the cluster or use and existing node and you can start restoring
+all the VMs via the gui. You don't need to wait for each backup to complete to restore the next one. 
+Just hit the X and restore the next one. Each request will be added to a queue and be restored in order.
+
+---
+
+If you are lucky enough to have an email from the previous day of a list of hosts running on the node
+that failed you can make this very easy. :)
+
+Given this output from the email:
+astonvilla
+Warning: Unknown iptable module: ipt_pkttype, skipped
+      CTID      NPROC STATUS    IP_ADDR         HOSTNAME
+       100        224 running   -               coke
+       101         42 running   -               pepsi
+       102         24 running   -               mdw.cs.uchicago.edu
+       103         31 running   -               xta.cs.uchicago.edu
+
+cat tmp | egrep 'running|stopped' | awk '{print $1}'
+100
+101
+102
+103
+
+# now get on a node on which you wish to restore the vms
+ssh node
+
+# some information on where the backups are stored
+root@chelsea:~# df -h | grep network-backup
+                      917G   14G  831G   2% /mnt/pve/network-backup
+# backups are stored here: /mnt/pve/network-backup/dump
+
+vmrestore-list="/root/vmrestore-list"
+backup-dir="/mnt/pve/network-backup/dump"
+cd $backup-dir
+
+# kvm restore
+for m in `cat $vmrestore-list | egrep 'running|stopped' | awk '{print $1}'`
+do 
+	$vm=`ls *.tar.gz | egrep "vzdump-qemu-$m.*" | sort -nr | head -n1`
+	qmrestore $backup-dir $m --storage local
+done
+
+# openvz restore
+for m in `cat $vmrestore-list | egrep 'running|stopped' | awk '{print $1}'`
+do
+   $vm=`ls *.tar.gz | egrep "vzdump-openvz-$m.*" | sort -nr | head -n1`
+   vzrestore $vm $m 
+done
+
+
+
