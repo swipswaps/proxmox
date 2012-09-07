@@ -43,6 +43,30 @@ the correct network file server backend.
 Removing a node from a cluster is a huge pain in the... well just try avoid this. Consult the 
 Proxmox wiki for instructions on how to do this.
 
+# So where are all these files located anyways...?
+/var/lib/vz/										# main dir
+/var/lib/vz/dump									# backups
+/var/lib/vz/images								# configured kvm VMs
+/var/lib/vz/private								# configured openvz VMs
+/var/lib/vz/root									# not entirely sure.. it seems its the same as 'private'
+/var/lib/vz/template								# iso's, template containers
+/var/lib/vz/template/cache						# openvz templates
+/var/lib/vz/template/iso						# iso's DUH!!
+
+/etc/pve/											# configuration files for the proxmox cluster
+/etc/pve/cluster.conf							# DO NOT TOUCH!!! DONT EVEN THINK ABOUT IT
+/etc/pve/datacenter.cfg							# currently only holds keyboard layout
+/etc/pve/domains.cfg								# authentication info -> AD config
+/etc/pve/storage.cfg								# local storage and nfs storage 
+/etc/pve/user.cfg									# users and groups
+/etc/pve/vzdump.cron								# backup jobs cron
+
+/etc/pve/nodes/<node_name>/openvz			# configuration files for openvz hosts
+	/etc/pve/openvz 								# symlinks to the above folder
+
+/etc/pve/nodes/<node_name>/qemu-server		# configuration files for kvm hosts
+	/etc/pve/qemu-server							# symlinks to the above folder
+
 # OUR SETUP!
 
 Proxmox servers as of 9/7/2012
