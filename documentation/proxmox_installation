@@ -24,11 +24,21 @@ mkfs.ext4 /dev/sdb1
 mkdir /backup
 
 # add to /etc/fstab
-cat "/dev/sdb1 /backup ext4 defaults 0 2" >> /etc/fstab
+echo "/dev/sdb1 /backup ext4 defaults 0 2" >> /etc/fstab
 
 # sshd_config setup
-cat /etc/ssh/sshd_config | sed 's/PermitRootLogin yes/PermitRootLogin without-password/' > /var/tmp/sshd_configmv 
+cat /etc/ssh/sshd_config | sed 's/PermitRootLogin yes/PermitRootLogin without-password/' > /var/tmp/sshd_config
 mv /var/tmp/sshd_config /etc/ssh/sshd_config
+
+# reboot
+reboot
+
+# ###
+# STOP!!!!
+# If you are adding this machine to a cluster that is already configured,
+# you do NOT need to run the configuration that happens after this line.
+# pvecm add <ip of a node in cluster>
+# ###
 
 # domain authentication
 cat > /etc/pve/domains.cfg <<EOF
