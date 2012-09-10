@@ -1,0 +1,45 @@
+#!/bin/bash
+
+ID=200
+NAME="ubuntu-12.04-standard_12.04_amd64.tar.gz"
+
+echo "Backup old template file"
+if [ -e /var/lib/vz/template/cache/$NAME ] && [ -e /var/lib/vz/template/cache/$NAME.old ]
+then
+	rm /var/lib/vz/template/cache/$NAME.old
+fi
+
+if [ -e /var/lib/vz/template/cache/$NAME ]
+then
+	mv /var/lib/vz/template/cache/$NAME /var/lib/vz/template/cache/$NAME.old
+fi
+
+#remove any ip address
+vzctl set $ID --ipdel all --save
+vzctl stop $ID
+
+echo "Preapring fresh ssh keys"
+sleep 2
+#Generate a unique set of ssh (host) keys.
+rm -f etc/ssh/ssh_host_*
+
+cat << EOF > etc/rc2.d/S15ssh_gen_host_keys
+#!/bin/sh
+ssh-keygen -f /etc/ssh/ssh_host_rsa_key -t rsa -N ''
+ssh-keygen -f /etc/ssh/ssh_host_dsa_key -t dsa -N ''
+ssh-keygen -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -N ''
+rm -f \$0
+EOF
+
+cd /var/lib/vz/private/$ID/
+
+echo "Start creating Template"
+sleep 5
+
+tar -czvf /var/lib/vz/template/cache/$NAME .
+
+echo "Done Packing up the tar archive"
+sleep 3
+
+echo "Done creating the template"
+sleep 2
