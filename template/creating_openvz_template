@@ -62,6 +62,13 @@ apt-get install tasksel -y
 tasksel install standard
 apt-get install ssh -y
 
+# we need this to fix issues with resolv.conf for dns when the template gets created
+apt-get purge resolvconf -y
+# write the local file
+update-locale
+# install the man pages
+apt-get install man -y
+
 # remove unnecessary files
 apt-get autoremove
 apt-get autoclean
