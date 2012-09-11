@@ -8,23 +8,27 @@ dpkg -i debootstrap_1.0.42_all.deb
 # create a directory in which you wish to 'install' ubuntu. These will be the files that will be
 # used for the openvz container template
 
-working-dir="~/ubuntu-12.04-amd64_openvz-template"
+workingdir=/root/ubuntu-12.04-amd64_openvz-template
 
-mkdir $working-dir
+mkdir $workingdir
 
-# install ubuntu base to $working-dir
-/usr/sbin/debootstrap --arch amd64 precise $working-dir
+# install ubuntu base to $workingdir
+/usr/sbin/debootstrap --arch amd64 precise $workingdir
 
 # wait for install to finish
 
 # chroot into your new environment! :)
-LANG=C chroot $working-dir /bin/bash
+LANG=C chroot $workingdir /bin/bash
 export TERM=xterm-color
 
-# create device files
-cd /dev
-MAKEDEV generic
-cd ~/
+cd
+
+# configure apt
+cat > /etc/apt/sources.list <<EOF
+deb http://archive.ubuntu.com/ubuntu precise main restricted universe
+deb http://archive.ubuntu.com/ubuntu precise-updates main restricted universe
+deb http://archive.ubuntu.com/ubuntu precise-security main restricted universe
+EOF
 
 # configure fstab
 # this may not be needed
@@ -50,13 +54,6 @@ dpkg-reconfigure locales
 # set timezone
 dpkg-reconfigure tzdata
 
-# configure apt
-cat > /etc/apt/sources.list <<EOF
-deb http://archive.ubuntu.com/ubuntu precise main restricted universe
-deb http://archive.ubuntu.com/ubuntu precise-updates main restricted universe
-deb http://archive.ubuntu.com/ubuntu precise-security main restricted universe
-EOF
-
 # install tasksel
 apt-get install tasksel -y
 tasksel install standard
@@ -78,8 +75,8 @@ apt-get clean
 exit
 
 # go to working dir and create a tar.gz of it for use with a template
-cd $working-dir
+cd $workingdir
 
-tar -czvf ~/ubuntu-12.04-amd64_openvz.tar.gz .
+tar -czvf /root/ubuntu-12.04-amd64_openvz.tar.gz .
 
 # this tar.gz can then be uploaded to the proxmox server as a new template.

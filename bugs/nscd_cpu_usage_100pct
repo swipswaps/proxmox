@@ -1,0 +1,10 @@
+http://forum.proxmox.com/threads/10852-nscd-inside-CTs-with-2-6-32-14-pve
+http://bugzilla.openvz.org/show_bug.cgi?id=2345
+
+This affects kernel 2.6.32-14-pve
+
+
+To resolve this run the following command:
+sysctl kernel.vsyscall64_gettime_monotonic=1
+
+
