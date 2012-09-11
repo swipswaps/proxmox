@@ -9,6 +9,9 @@
 mkdir -p /root/.ssh/
 echo 'from="128.135.164.145" ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA3kOWMhOJuu79zdZKNTDCQX1M+1jI15wTMsKLRx1VYSKIred//66C3q5feA9Sj9iKcLOtslH03LmjZ49Quo7E5AXt8SAzn6sqyfFz8kad6Fv4ECoM78OJ+UIUM8fjJJfn7n+DdGie95y7r2qai3ac7ELP50MLYYIv7GdO3Uv7wyEJoillEZCYC1LObzGd4VOqvyNrf2eq+VChiddmtYUltmTIWuQsTyLocQGAuM7vg1R/iUO+5x0TYoYPRnpHbrfqfJK+PCQocbx9vXq/pXGi0eYsLT1c1CzAmuAAfLcv4Y+FcfVJVyqGHCkU08J13BQ7aIlUv2tVQNXxthx0BiSk8w== root@prg.cs.uchicago.edu' >> /root/.ssh/authorized_keys
 
+# from rserver (prg)
+# use /opt/techstaff/bin/ssh_key [get/put] hostname
+# to be able to ssh into hostname from rserver
 
 # updates!
 aptitude update && aptitude full-upgrade -y
@@ -30,8 +33,11 @@ echo "/dev/sdb1 /backup ext4 defaults 0 2" >> /etc/fstab
 cat /etc/ssh/sshd_config | sed 's/PermitRootLogin yes/PermitRootLogin without-password/' > /var/tmp/sshd_config
 mv /var/tmp/sshd_config /etc/ssh/sshd_config
 
-# reboot
-reboot
+# install dell's omconfig in ../dell/
+
+
+
+
 
 # ###
 # STOP!!!!
