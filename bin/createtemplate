@@ -1,17 +1,73 @@
 #!/bin/bash
 
-ID=200
-NAME="ubuntu-12.04-standard_12.04_amd64.tar.gz"
+ID=$1
+NAME=$2
+CTDIR="/var/lib/vz/private"
+TEMPLATEDIR="/var/lib/vz/template/cache"
 
-echo "Backup old template file"
-if [ -e /var/lib/vz/template/cache/$NAME ] && [ -e /var/lib/vz/template/cache/$NAME.old ]
+print_usage(){
+	echo "Usage: $0 <VM ID> <archive name>"
+	echo "Example: $0 100 ubuntu-12.04-standard_12.04_amd64.tar.gz"
+}
+
+# testing to see if the arguments exist before going any further
+if [ -z $ID ]
 then
-	rm /var/lib/vz/template/cache/$NAME.old
+	echo "VMID is not set."
+	if [ -z $NAME ]
+	then
+		echo "The archive name is not set"
+		print_usage
+		exit 1
+	fi
 fi
 
-if [ -e /var/lib/vz/template/cache/$NAME ]
+
+# Testing $ID
+if [ ! $ID -ge 100 ]
 then
-	mv /var/lib/vz/template/cache/$NAME /var/lib/vz/template/cache/$NAME.old
+	echo "Enter a VMID of 100 or greater."
+	print_usage
+	exit 1
+fi
+
+# test to see if the VM exists
+echo "Testing for valid VM ID."
+if [ ! -d $CTDIR/$ID ]
+then
+	echo "The VM $ID, does not exist. Please enter a valid VM ID."
+	print_usage
+	exit 1
+fi
+
+# testing $NAME
+echo "Testing for valid archive name."
+if [[ $NAME != *".tar.gz" ]]
+then
+	echo "Enter an archive/template name ending in '.tar.gz'"
+	print_usage
+	exit 1;
+fi
+
+# go to template directory
+cd $CTDIR/$ID
+
+echo "Backup old template file"
+if [ -e $TEMPLATEDIR/$NAME ] && [ -e $TEMPLATEDIR/$NAME.old ]
+then
+	rm $TEMPLATEDIR/$NAME.old
+fi
+
+if [ -e $TEMPLATEDIR/$NAME ]
+then
+	mv $TEMPLATEDIR/$NAME $TEMPLATEDIR/$NAME.old
+fi
+
+# check to see if VM is running, if so do nothing, if not start VM
+CTSTATUS=`vzctl status $ID`
+if [[ ! $CTSTATUS == "*running" ]]                    
+then                  
+   vzctl start $ID
 fi
 
 #remove any ip address
@@ -31,12 +87,12 @@ ssh-keygen -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -N ''
 rm -f \$0
 EOF
 
-cd /var/lib/vz/private/$ID/
+cd $CTDIR/$ID
 
 echo "Start creating Template"
 sleep 5
 
-tar -czvf /var/lib/vz/template/cache/$NAME .
+tar -czvf $TEMPLATEDIR/$NAME .
 
 echo "Done Packing up the tar archive"
 sleep 3
