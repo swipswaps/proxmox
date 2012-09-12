@@ -31,9 +31,10 @@ cat > /opt/dell/bin/om-alert-via-email.bash <<EOF
 HOST=`hostname`
 EMAIL="root@cs.uchicago.edu"
 ALERT_LOGFILE=/opt/dell/tmp/alertlog
-echo "`/opt/dell/srvadmin/bin/omreport system alertlog`" > /opt/dell/tmp/alertlog
-
 MSGFILE=/opt/dell/tmp/msgfile.txt
+
+# save the alert log into a file
+/opt/dell/srvadmin/bin/omreport system alertlog -outc \$ALERT_LOGFILE
 
 echo -e "To: \$EMAIL" > \$MSGFILE
 echo -e "From: omsa@$HOST.com" >> \$MSGFILE
