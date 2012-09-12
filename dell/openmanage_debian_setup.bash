@@ -32,11 +32,12 @@ preferences.system.scheme=
 preferences.root.skin=modern
 preferences.system.skin=modern
 preferences.root.scheme=
-preferences.system.smtp=smtp.cs.uchicago.edu
+preferences.system.smtp=128.135.164.153
 preferences.system.customdelimiter=pipe
 preferences.root.to=root@cs.uchicago.edu
 preferences.system.dnssuffix=cs.uchicago.edu
 EOF
+
 # Enable administrator access only.
 omconfig preferences useraccess enable=admin
 
