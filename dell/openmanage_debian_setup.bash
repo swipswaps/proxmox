@@ -35,16 +35,16 @@ echo "`/opt/dell/srvadmin/bin/omreport system alertlog`" > /opt/dell/tmp/alertlo
 
 MSGFILE=/opt/dell/tmp/msgfile.txt
 
-echo -e "To: $EMAIL" > $MSGFILE
-echo -e "From: omsa@$HOST.com" >> $MSGFILE
-echo -e "Subject: OMSA Alert on $HOST" >> $MSGFILE
-echo -e "Body: " >> $MSGFILE
+echo -e "To: \$EMAIL" > \$MSGFILE
+echo -e "From: omsa@$HOST.com" >> \$MSGFILE
+echo -e "Subject: OMSA Alert on \$HOST" >> \$MSGFILE
+echo -e "Body: " >> \$MSGFILE
 
-cat $ALERT_LOGFILE >> $MSGFILE
+cat \$ALERT_LOGFILE >> \$MSGFILE
 
-sendmail -t < $MSGFILE
+sendmail -t < \$MSGFILE
 
-rm $MSGFILE
+rm \$MSGFILE
 EOF
 
 # give execute permissions
