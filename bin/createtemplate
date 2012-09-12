@@ -1,7 +1,8 @@
 #!/bin/bash
 
-ID=$1
-NAME=$2
+ID="$1"
+NAME="$2"
+DEFAULTNAME="ubuntu-12.04-standard_12.04_amd64.tar.gz"
 CTDIR="/var/lib/vz/private"
 TEMPLATEDIR="/var/lib/vz/template/cache"
 
@@ -14,12 +15,8 @@ print_usage(){
 if [ -z $ID ]
 then
 	echo "VMID is not set."
-	if [ -z $NAME ]
-	then
-		echo "The archive name is not set"
-		print_usage
-		exit 1
-	fi
+	print_usage
+	exit 1
 fi
 
 
@@ -33,7 +30,7 @@ fi
 
 # test to see if the VM exists
 echo "Testing for valid VM ID."
-if [ ! -d $CTDIR/$ID ]
+if [ ! -d "$CTDIR/$ID" ]
 then
 	echo "The VM $ID, does not exist. Please enter a valid VM ID."
 	print_usage
@@ -41,33 +38,41 @@ then
 fi
 
 # testing $NAME
-echo "Testing for valid archive name."
-if [[ $NAME != *".tar.gz" ]]
+# testing to see if the arguments exist before going any further
+if [ -z "$NAME" ]
 then
-	echo "Enter an archive/template name ending in '.tar.gz'"
-	print_usage
-	exit 1;
+        echo "NAME is not set."
+	echo "Using default name $DEFAULTNAME"
+
+else
+	echo "Testing for valid archive name."
+	if [[ "$NAME" != *".tar.gz" ]]
+	then
+		echo "Enter an archive/template name ending in '.tar.gz'"
+		print_usage
+		exit 1;
+	fi
 fi
 
 # go to template directory
-cd $CTDIR/$ID
+cd "$CTDIR/$ID"
 
 echo "Backup old template file"
-if [ -e $TEMPLATEDIR/$NAME ] && [ -e $TEMPLATEDIR/$NAME.old ]
+if [ -e "$TEMPLATEDIR/$NAME" ] && [ -e "$TEMPLATEDIR/$NAME.old" ]
 then
-	rm $TEMPLATEDIR/$NAME.old
+	rm "$TEMPLATEDIR/$NAME.old"
 fi
 
-if [ -e $TEMPLATEDIR/$NAME ]
+if [ -e "$TEMPLATEDIR/$NAME" ]
 then
-	mv $TEMPLATEDIR/$NAME $TEMPLATEDIR/$NAME.old
+	mv "$TEMPLATEDIR/$NAME" "$TEMPLATEDIR/$NAME.old"
 fi
 
 # check to see if VM is running, if so do nothing, if not start VM
 CTSTATUS=`vzctl status $ID`
-if [[ ! $CTSTATUS == "*running" ]]                    
+if [[ ! "$CTSTATUS" == "*running" ]]                    
 then                  
-   vzctl start $ID
+	vzctl start $ID
 fi
 
 #remove any ip address
@@ -87,15 +92,16 @@ ssh-keygen -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -N ''
 rm -f \$0
 EOF
 
-cd $CTDIR/$ID
+cd "$CTDIR/$ID"
 
 echo "Start creating Template"
 sleep 5
 
-tar -czvf $TEMPLATEDIR/$NAME .
+tar -czvf "$TEMPLATEDIR/$NAME" .
 
 echo "Done Packing up the tar archive"
 sleep 3
 
 echo "Done creating the template"
 sleep 2
+
