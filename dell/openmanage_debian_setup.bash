@@ -1,5 +1,4 @@
 #!/bin/bash
-OMTOOLSDIR="/opt/dell/srvadmin/bin"
 
 echo 'deb http://linux.dell.com/repo/community/deb/latest /' | tee -a /etc/apt/sources.list.d/linux.dell.com.sources.list
 gpg --keyserver pool.sks-keyservers.net --recv-key 1285491434D8786F
