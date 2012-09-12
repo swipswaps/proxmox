@@ -46,6 +46,9 @@ apt-get dist-upgrade -y
 apt-get install syslog-ng -y
 apt-get remove rsyslog -y
 
+#fix for logrotate and syslog-ng
+sed -i 's|#SYSLOGNG_OPTS=|SYSLOGNG_OPTS=|' /etc/default/syslog-ng
+
 # set locale
 locale-gen en_US
 locale-gen en_US.UTF-8
