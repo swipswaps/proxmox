@@ -41,9 +41,9 @@ fi
 # testing to see if the arguments exist before going any further
 if [ -z "$NAME" ]
 then
-        echo "NAME is not set."
+	echo "NAME is not set."
 	echo "Using default name $DEFAULTNAME"
-
+	NAME=$DEFAULTNAME
 else
 	echo "Testing for valid archive name."
 	if [[ "$NAME" != *".tar.gz" ]]
