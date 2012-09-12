@@ -1,4 +1,6 @@
 #!/bin/bash
+OMTOOLSDIR="/opt/dell/srvadmin/bin"
+
 echo 'deb http://linux.dell.com/repo/community/deb/latest /' | tee -a /etc/apt/sources.list.d/linux.dell.com.sources.list
 gpg --keyserver pool.sks-keyservers.net --recv-key 1285491434D8786F
 gpg -a --export 1285491434D8786F | apt-key add -
@@ -17,9 +19,9 @@ mv /var/tmp/rc.local /etc/
 reboot
 
 # set settings
-for m in `omconfig system alertaction -? | awk '{print $1}' | grep event`
+for m in `/opt/dell/srvadmin/bin/omconfig system alertaction -? | awk '{print $1}' | grep event`
 do
-	omconfig system alertaction $m alert=true broadcast=true execappath="/opt/dell/bin/om-alert-via-email.bash"
+	/opt/dell/srvadmin/bin/omconfig system alertaction $m alert=true broadcast=true execappath="/opt/dell/bin/om-alert-via-email.bash"
 done
 
 # configure email script
@@ -52,7 +54,7 @@ EOF
 chmod +x /opt/dell/bin/om-alert-via-email.bash
 
 # enable platform event alerts
-omconfig system platformevents alertsenable=true
+/opt/dell/srvadmin/bin/omconfig system platformevents alertsenable=true
 
 
 # email settings
@@ -68,15 +70,15 @@ preferences.system.dnssuffix=cs.uchicago.edu
 EOF
 
 # Enable administrator access only.
-omconfig preferences useraccess enable=admin
+/opt/dell/srvadmin/bin/omconfig preferences useraccess enable=admin
 
 # CDV format delimiter
 # delimiter=<exclamation|semicolon|at|hash|dollar|caret|asterisk|tilde|question|comma|pipe>
-omconfig preferences cdvformat delimiter=pipe
+/opt/dell/srvadmin/bin/omconfig preferences cdvformat delimiter=pipe
 
 
 # bios settings
-# omconfig chassis biossetup -?
+# /opt/dell/srvadmin/bin/omconfig chassis biossetup -?
 
 # remoteaccess -> idrac configuration
-# omconfig chassis remoteaccess -?
+# /opt/dell/srvadmin/bin/omconfig chassis remoteaccess -?
