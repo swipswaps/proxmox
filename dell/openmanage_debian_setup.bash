@@ -37,7 +37,7 @@ MSGFILE=/opt/dell/tmp/msgfile.txt
 /opt/dell/srvadmin/bin/omreport system alertlog -outc \$ALERT_LOGFILE
 
 echo -e "To: \$EMAIL" > \$MSGFILE
-echo -e "From: omsa@$HOST.com" >> \$MSGFILE
+echo -e "From: omsa@$HOST.cs.uchicago.edu" >> \$MSGFILE
 echo -e "Subject: OMSA Alert on \$HOST" >> \$MSGFILE
 echo -e "Body: " >> \$MSGFILE
 
