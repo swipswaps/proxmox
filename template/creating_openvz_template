@@ -46,7 +46,7 @@ apt-get dist-upgrade -y
 apt-get install syslog-ng -y
 apt-get remove rsyslog -y
 
-#fix for logrotate and syslog-ng
+# fix for logrotate and syslog-ng
 sed -i 's|#SYSLOGNG_OPTS=|SYSLOGNG_OPTS=|' /etc/default/syslog-ng
 
 # set locale
@@ -64,8 +64,10 @@ apt-get install ssh -y
 
 # we need this to fix issues with resolv.conf for dns when the template gets created
 apt-get purge resolvconf -y
+
 # write the local file
 update-locale
+
 # install the man pages
 apt-get install man -y
 
