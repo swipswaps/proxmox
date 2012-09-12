@@ -10,7 +10,7 @@ update-rc.d dsm_om_connsvc defaults
 #echo "Open the browser and go to https://IP:1311/"
 
 # start webserver everytime the machine starts
-sed '/exit 0/ i\
+sed '/^exit 0$/ i\
 /etc/init.d/dsm_om_connsvc start' /etc/rc.local > /var/tmp/rc.local
 mv /var/tmp/rc.local /etc/
 
