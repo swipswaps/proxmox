@@ -19,8 +19,36 @@ reboot
 # set settings
 for m in `omconfig system alertaction -? | awk '{print $1}' | grep event`
 do
-	omconfig system alertaction $m alert=true broadcast=true
+	omconfig system alertaction $m alert=true broadcast=true execappath="/opt/dell/bin/om-alert-via-email.bash"
 done
+
+# configure email script
+# http://idolinux.blogspot.com/2011/02/quick-dell-openmanage-email-alerts.html
+mkdir -p /opt/dell/bin
+mkdir -p /opt/dell/tmp
+cat > /opt/dell/bin/om-alert-via-email.bash <<EOF
+#!/bin/bash
+HOST=`hostname`
+EMAIL="root@cs.uchicago.edu"
+ALERT_LOGFILE=/opt/dell/tmp/alertlog
+echo "`/opt/dell/srvadmin/bin/omreport system alertlog`" > /opt/dell/tmp/alertlog
+
+MSGFILE=/opt/dell/tmp/msgfile.txt
+
+echo -e "To: $EMAIL" > $MSGFILE
+echo -e "From: omsa@$HOST.com" >> $MSGFILE
+echo -e "Subject: OMSA Alert on $HOST" >> $MSGFILE
+echo -e "Body: " >> $MSGFILE
+
+cat $ALERT_LOGFILE >> $MSGFILE
+
+sendmail -t < $MSGFILE
+
+rm $MSGFILE
+EOF
+
+# give execute permissions
+chmod +x /opt/dell/bin/om-alert-via-email.bash
 
 # enable platform event alerts
 omconfig system platformevents alertsenable=true
