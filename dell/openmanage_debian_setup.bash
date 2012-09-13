@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Note this does not enable email alerts from the iDRAC interface. This can supplement those messages or accompany them.
+
 echo 'deb http://linux.dell.com/repo/community/deb/latest /' | tee -a /etc/apt/sources.list.d/linux.dell.com.sources.list
 gpg --keyserver pool.sks-keyservers.net --recv-key 1285491434D8786F
 gpg -a --export 1285491434D8786F | apt-key add -
