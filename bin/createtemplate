@@ -19,7 +19,6 @@ then
 	exit 1
 fi
 
-
 # Testing $ID
 if [ ! $ID -ge 100 ]
 then
@@ -54,14 +53,6 @@ else
 	fi
 fi
 
-# use apt to remove some unecessary files
-vzctl exec $ID 'apt-get autoremove'
-vzctl exec $ID 'apt-get autoclean'
-vzctl exec $ID 'apt-get clean'
-# remove logs from /var/log
-vzctl exec $ID 'find /var/log -type f -delete'
-
-
 # go to template directory
 cd "$CTDIR/$ID"
 
@@ -82,6 +73,13 @@ if [[ ! "$CTSTATUS" == "*running" ]]
 then                  
 	vzctl start $ID
 fi
+
+# use apt to remove some unecessary files
+vzctl exec $ID 'apt-get autoremove'
+vzctl exec $ID 'apt-get autoclean'
+vzctl exec $ID 'apt-get clean'
+# remove logs from /var/log
+vzctl exec $ID 'find /var/log -type f -delete'
 
 #remove any ip address
 vzctl set $ID --ipdel all --save
