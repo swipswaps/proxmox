@@ -54,6 +54,14 @@ else
 	fi
 fi
 
+# use apt to remove some unecessary files
+vzctl exec $ID 'apt-get autoremove'
+vzctl exec $ID 'apt-get autoclean'
+vzctl exec $ID 'apt-get clean'
+# remove logs from /var/log
+vzctl exec $ID 'find /var/log -type f -delete'
+
+
 # go to template directory
 cd "$CTDIR/$ID"
 
