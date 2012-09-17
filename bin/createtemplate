@@ -1,37 +1,37 @@
 #!/bin/bash
 
-ID="$1"
+CTID="$1"
 NAME="$2"
 DEFAULTNAME="ubuntu-12.04-standard_12.04_amd64.tar.gz"
 CTDIR="/var/lib/vz/private"
 TEMPLATEDIR="/var/lib/vz/template/cache"
 
 print_usage(){
-	echo "Usage: $0 <VM ID> <archive name>"
+	echo "Usage: $0 <CT ID> <archive name>"
 	echo "Example: $0 100 ubuntu-12.04-standard_12.04_amd64.tar.gz"
 }
 
 # testing to see if the arguments exist before going any further
-if [ -z $ID ]
+if [ -z $CTID ]
 then
-	echo "VMID is not set."
+	echo "CTID is not set."
 	print_usage
 	exit 1
 fi
 
-# Testing $ID
-if [ ! $ID -ge 100 ]
+# Testing $CTID
+if [ ! $CTID -ge 100 ]
 then
-	echo "Enter a VMID of 100 or greater."
+	echo "Enter a CTID of 100 or greater."
 	print_usage
 	exit 1
 fi
 
 # test to see if the VM exists
 echo "Testing for valid VM ID."
-if [ ! -d "$CTDIR/$ID" ]
+if [ ! -d "$CTDIR/$CTID" ]
 then
-	echo "The VM $ID, does not exist. Please enter a valid VM ID."
+	echo "The VM $CTID, does not exist. Please enter a valid VM ID."
 	print_usage
 	exit 1
 fi
@@ -54,7 +54,7 @@ else
 fi
 
 # go to template directory
-cd "$CTDIR/$ID"
+cd "$CTDIR/$CTID"
 
 echo "Backup old template file"
 if [ -e "$TEMPLATEDIR/$NAME" ] && [ -e "$TEMPLATEDIR/$NAME.old" ]
@@ -68,22 +68,22 @@ then
 fi
 
 # check to see if VM is running, if so do nothing, if not start VM
-CTSTATUS=`vzctl status $ID`
+CTSTATUS=`vzctl status $CTID`
 if [[ ! "$CTSTATUS" == "*running" ]]                    
 then                  
-	vzctl start $ID
+	vzctl start $CTID
 fi
 
 # use apt to remove some unecessary files
-vzctl exec $ID 'apt-get autoremove'
-vzctl exec $ID 'apt-get autoclean'
-vzctl exec $ID 'apt-get clean'
+vzctl exec $CTID 'apt-get autoremove'
+vzctl exec $CTID 'apt-get autoclean'
+vzctl exec $CTID 'apt-get clean'
 # remove logs from /var/log
-vzctl exec $ID 'find /var/log -type f -delete'
+vzctl exec $CTID 'find /var/log -type f -delete'
 
 #remove any ip address
-vzctl set $ID --ipdel all --save
-vzctl stop $ID
+vzctl set $CTID --ipdel all --save
+vzctl stop $CTID
 
 echo "Preapring fresh ssh keys"
 sleep 2
@@ -98,7 +98,7 @@ ssh-keygen -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -N ''
 rm -f \$0
 EOF
 
-cd "$CTDIR/$ID"
+cd "$CTDIR/$CTID"
 
 echo "Start creating Template"
 sleep 5
