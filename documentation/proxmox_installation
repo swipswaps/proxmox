@@ -29,8 +29,14 @@ mkdir /backup
 # add to /etc/fstab
 echo "/dev/sdb1 /backup ext4 defaults 0 2" >> /etc/fstab
 
-# install dell's omconfig in ../dell/
+# this is the git repo for proxmox
+mkdir /tools
+echo "liverpool.cs.uchicago.edu:/storage/proxmox/tools /tools nfs ro 0 0" >> /etc/fstab
 
+# mount dirs
+mount -a
+
+# install dell's omconfig in ../dell/
 
 # ###
 # STOP!!!!

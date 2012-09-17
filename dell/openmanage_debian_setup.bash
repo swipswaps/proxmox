@@ -17,8 +17,7 @@ sed '/^exit 0$/ i\
 mv /var/tmp/rc.local /etc/
 chmod +x /etc/rc.local
 
-# reboot the system
-reboot
+exec bash --login
 
 # set settings
 for m in `/opt/dell/srvadmin/bin/omconfig system alertaction -? | awk '{print $1}' | grep event`
