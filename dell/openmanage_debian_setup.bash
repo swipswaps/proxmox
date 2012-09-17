@@ -15,6 +15,7 @@ update-rc.d dsm_om_connsvc defaults
 sed '/^exit 0$/ i\
 /etc/init.d/dsm_om_connsvc start' /etc/rc.local > /var/tmp/rc.local
 mv /var/tmp/rc.local /etc/
+chmod +x /etc/rc.local
 
 # reboot the system
 reboot
