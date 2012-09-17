@@ -1,0 +1,22 @@
+#!/bin/bash
+# This script will create a new container based on some commandline arguments
+# It is a wrapper for 'vzctl create'
+# vzctl create <ctid> [--ostemplate <name>] [--config <name>] 
+#	[--private <path>] [--root <path>] [--ipadd <addr>] | [--hostname <name>]
+
+
+# | grep -v total | awk '{print $9}' | sed 's/.conf//' | tail -n1
+
+
+# Find the largest CT number and add 1
+# set that to $ID
+
+# find and list all available templates
+# let user choose the template
+
+# set hostname
+
+# set ip address
+
+
+
