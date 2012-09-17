@@ -1,0 +1,39 @@
+#!/bin/bash
+
+print_usage(){
+	echo "Usage: $0 <VM ID> <host directory> <Container directory>"
+	echo "Example: $0 100 /mnt/storage/sharedfiles /sharedfiles"
+}
+
+# ID of the openvz container
+CTID=$1
+
+# Directory located on the host (the proxmox node)
+HOSTDIR="$2"
+
+# THe dirctory onto which $HOSTDIR should be mounted
+CTDIR="$3"
+
+# openvz conf dir
+OVZCONFDIR="/etc/pve/openvz"
+
+#Check for arguments
+if [ $# -eq 0 ]
+then
+	print_usage
+	exit 1
+fi
+
+if [ -z $OVZCONFDIR/$CTID.mount ]
+then
+
+cat > $OVZCONFDIR/$CTID.mount <<EOF
+#!/bin/bash
+source /etc/vz/vz.conf
+source \${VE_CONFFILE}
+mount -n --bind $HOSTDIR \${VE_ROOT}/$CTDIR
+EOF
+
+else
+	echo "mount -n --bind $HOSTDIR \${VE_ROOT}/$CTDIR" >> $OVZCONFDIR/$CTID.mount
+fi
