@@ -3,6 +3,6 @@
 echo "Are you sure you want to reboot this server?"
 echo "This server has the following VMs running on it"
 vzlist
-q list
+qm list
 echo "To REALLY reboot please run /sbin/reboot.bin"
 exit 0
