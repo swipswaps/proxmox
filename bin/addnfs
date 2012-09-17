@@ -4,9 +4,9 @@
 if [ $# -eq 0 ]
 then
 	echo "Please enter the number of the vz as an argument"
-	echo "usage: $0 NUM"
+	echo "usage: $0 CTID"
 	exit 1
 fi
 
-NUM="$1"
-vzctl set $NUM --features "nfs:on" --save
+CTID="$1"
+vzctl set $CTID --features "nfs:on" --save
