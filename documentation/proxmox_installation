@@ -29,14 +29,7 @@ mkdir /backup
 # add to /etc/fstab
 echo "/dev/sdb1 /backup ext4 defaults 0 2" >> /etc/fstab
 
-# sshd_config setup
-cat /etc/ssh/sshd_config | sed 's/PermitRootLogin yes/PermitRootLogin without-password/' > /var/tmp/sshd_config
-mv /var/tmp/sshd_config /etc/ssh/sshd_config
-
 # install dell's omconfig in ../dell/
-
-
-
 
 
 # ###
@@ -51,8 +44,8 @@ cat > /etc/pve/domains.cfg <<EOF
 ad: adlocal
         comment UofC Active Directory (ad.local)
         domain ad.local
-        server1 ucad00.ad.uchicago.edu
-        server2 ucad01.ad.uchicago.edu
+        server1 ucadlocal00.ad.local
+        server2 ucadlocal01.ad.local
         secure
         default
 EOF
