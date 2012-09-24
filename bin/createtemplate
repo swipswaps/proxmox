@@ -87,6 +87,9 @@ vzctl stop $CTID
 
 echo "Preapring fresh ssh keys"
 sleep 2
+
+cd "$CTDIR/$CTID"
+
 #Generate a unique set of ssh (host) keys.
 rm -f etc/ssh/ssh_host_*
 
@@ -98,7 +101,7 @@ ssh-keygen -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -N ''
 rm -f \$0
 EOF
 
-cd "$CTDIR/$CTID"
+chmod +x etc/rc2.d/S15ssh_gen_host_keys 
 
 echo "Start creating Template"
 sleep 5
