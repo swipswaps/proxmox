@@ -1,0 +1,50 @@
+It is possible to open a VNC session to a KVM guest without using the web applet.
+
+### WHY ###
+The applet does not work reliably on all browsers or JVMs. If it works, you should
+prefer to use it.
+
+### SETUP ###
+
+You will need:
+  - the ID of the KVM guest. It is a short number used throughout proxmox to identify the VM.
+  - TigerVNC, or other compatible software. I have tried many others and only TigerVNC worked.
+    Interestingly, TigerVNC is also the java applet that proxmox bundles for their web-console.
+  - netcat or socat installed on the VM server. It is not installed by default on proxmox hosts.
+  - netcat or socat installed on your computer, the client system.
+  - Optionally, sudo and sudoers configuration. See Instructions, below.
+
+### Limitations ###
+  - The KVM guest MUST be running, so QEMU creates the vnc socket we will connect through. If the guest is stopped, your console session will terminate.
+  - It is not possible to send hardware events (restart, pause, resume) from the console. The proxmox console applet does have this ability.
+
+### Instructions ###
+  1. With the VM running, start a VNC session from the socket, using SSH as the transport:
+
+    nc -lp 5190 -c 'ssh chelsea.cs.uchicago.edu "sudo socat STDIO UNIX-CONNECT:/var/run/qemu-server/106.vnc"' &
+
+    Notice several things about this command. 
+
+      - sudo is used here to get read access to the socket at "/var/run/qemu-server/106.vnc". Alternatively, you could ssh in as root.
+      - chelsea.cs.uchicago.edu is the VM host. The target must be the host that is actually running the VM.
+      - The path to the fifi /var/run/qemu-server/106.vnc includes the ID of the guest. Change 106 to the actual host ID that you want.
+      - The command is backgrounded. This is OPTIONAL, and suggests that I am using passwordless ssh. You could skip this and do the next command in another window.
+
+  2. Launch TigerVNC. I have it unpacked in my home directory, for convenience: ~/opt/TigerVNC/bin/vncviewer localhost
+    TigerVNC will start an XWindow with a login box. The username is a valid proxmox user, including the login method, like this: chudler@CS_LDAP
+  
+## TROUBLESHOOTING ##
+
+1. Remember, the user logging into chelsea needs read access to the socket. By default, only root/superuser can do this.
+2. "Server did not offer supported security type". This is an incompatible VNC client. Most likely, it does not support x509 authentication. Try TigerVNC.
+  Testing revealed these VNC clients are NOT LIKELY to work:
+    RealVNC
+    TightVNC
+    Vinagre (GNOME Remote Desktop Viewer)
+    UltraVNC
+    vncviewer
+
+3. I get connected, but there's only a black screen. This happens because the guest does not update the contents of the screen. It is typical if the guest cannot boot and is stuck at a loading
+   screen, or other similar problems. I have not found a good solution to this, because restarting the VM terminates the session.
+
+   If you use the API or UI to restart the guest, and very quickly connect your VNC session, you might get to see the bios and boot loader before it halts.prefer to use it.
