@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# $ qemu-img convert -O raw diskimage.qcow2 diskimage.raw
+
+
+$INPUT_FILE=$1
+
+FILENAME=$(basename "$INPUT_FILE")
+EXTENSION="${FILENAME##*.}"
+FILENAME="${FILENAME%.*}"
+
+
+# if it ends in qcow2, do nothing
+
+if [ $EXTENSION == "qcow2" ]; then
+	echo "$FILENAME.$EXTENSION is already in qcow2. Exiting."
+	exit 0
+fi
+
+
+convert qcow2 $FILENAME.$EXTENSION $FILENAME
+
+
+convert() {
+	local FORMAT=$1	# format to convert to
+	local SOURCE=$2	# source file name including extension
+	local OUTPUT=$3 	# output file name
+
+	qemu-img convert -O $FORMAT $SOURCE $OUTPUT.$FORMAT
+}
+
