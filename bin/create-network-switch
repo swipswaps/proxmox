@@ -16,4 +16,6 @@ NEXTID=$(($CURRENTID + 1))
 # easy to use variable
 VMBR="vmbr$NEXTID"
 
-$PATH/brctl addbr $VMBR
+$PATH/brctl addbr $VMBR && \
+echo "Switch $VMBR created successfully" || \
+echo "Could not create $VMBR."

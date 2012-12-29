@@ -16,6 +16,8 @@ NEXTID=$(($CURRENTID + 1))
 # easy to use variable
 VMBR="vmbr$NEXTID"
 
-$PATH/brctl addbr $VMBR
-$PATH/brctl setageing $VMBR 0
-$PATH/brctl setfd $VMBR 0
+$PATH/brctl addbr $VMBR && \
+$PATH/brctl setageing $VMBR 0 && \
+$PATH/brctl setfd $VMBR 0 && \
+echo "Hub $VMBR created successfully" || \
+echo "Could not create $VMBR."
