@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# This script is designed to install proxmox on a standard install
+# of debian 6.06
+
+
+cat <<EOF > /etc/hosts
+127.0.0.1       localhost
+128.135.164.158 tottenham.cs.uchicago.edu       tottenham
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+EOF
+
+cat <<EOF > /etc/network/interfaces
+auto lo
+iface lo inet loopback
+auto eth0
+iface eth0 inet static
+  address 128.135.164.158
+  netmask 255.255.255.0
+  gateway 128.135.164.1
+  dns-search cs.uchicago.edu
+  dns-nameservers 128.135.164.141 128.135.247.50 128.135.249.50
+EOF
+
+/etc/init.d/networking restart
+
+
+cat <<EOF >> /etc/apt/sources.list
+# PVE packages provided by proxmox.com
+deb http://download.proxmox.com/debian squeeze pve
+EOF
+
+wget -O- "http://download.proxmox.com/debian/key.asc" | apt-key add -
+gpg --keyserver pgpkeys.mit.edu --recv-key C23AC7F49887F95A
+gpg -a --export C23AC7F49887F95A | apt-key add -
+
+aptitude update
+aptitude full-upgrade -y
+
+aptitude install pve-firmware -y
+aptitude install pve-kernel-2.6.32-16-pve -y
+

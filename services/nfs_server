@@ -1,0 +1,7 @@
+# http://wiki.openvz.org/NFS_server_inside_container
+
+vzctl set $CTID --feature nfsd:on --save
+
+wget http://mirror.anl.gov/pub/ubuntu//pool/universe/n/nfs-user-server/nfs-user-server_2.2beta47-23_amd64.deb
+dpkg -i nfs-user-server.*.deb
+

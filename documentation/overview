@@ -93,7 +93,6 @@ Notes:
 	Port 9 and 11 on the switch in the first rack are bonded with 802.3ad. 
 
 
-
 Each node is setup like this: 
 Also see 'Proxmox_install' for complete setup instructions
 

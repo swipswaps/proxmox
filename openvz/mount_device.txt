@@ -1,3 +1,0 @@
-vzctl set 100 --devnodes sda:rw --save
-chmod g+w /dev/sda
-chown root:disk /dev/sda

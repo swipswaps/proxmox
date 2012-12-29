@@ -1,0 +1,87 @@
+# source: https://help.ubuntu.com/12.04/installation-guide/powerpc/linux-upgrade.html
+# source: http://blog.bodhizazen.net/linux/ubuntu-10-04-openvz-templates/
+
+# install debootstrap from ubuntu deb
+wget http://archive.ubuntu.com/ubuntu/pool/main/d/debootstrap/debootstrap_1.0.42_all.deb
+dpkg -i debootstrap_1.0.42_all.deb
+
+# create a directory in which you wish to 'install' ubuntu. These will be the files that will be
+# used for the openvz container template
+
+workingdir=/root/ubuntu-12.04-amd64_openvz-template
+
+mkdir $workingdir
+
+# install ubuntu base to $workingdir
+/usr/sbin/debootstrap --arch amd64 precise $workingdir
+
+# wait for install to finish
+
+# chroot into your new environment! :)
+LANG=C chroot $workingdir /bin/bash
+export TERM=xterm-color
+
+cd
+
+# configure apt
+cat > /etc/apt/sources.list <<EOF
+deb http://archive.ubuntu.com/ubuntu precise main restricted universe
+deb http://archive.ubuntu.com/ubuntu precise-updates main restricted universe
+deb http://archive.ubuntu.com/ubuntu precise-security main restricted universe
+EOF
+
+# configure fstab
+# this may not be needed
+cat > /etc/fstab <<EOF
+proc  /proc       proc    defaults    0    0
+none  /dev/pts    devpts  rw,gid=5,mode=620    0    0
+none  /run/shm    tmpfs   defaults    0    0
+EOF
+
+# full upgrade
+apt-get update
+apt-get dist-upgrade -y
+
+# rsyslog cause the cpu to go to 100% :(
+apt-get install syslog-ng -y
+apt-get remove rsyslog -y
+
+# fix for logrotate and syslog-ng
+sed -i 's|#SYSLOGNG_OPTS=|SYSLOGNG_OPTS=|' /etc/default/syslog-ng
+
+# set locale
+locale-gen en_US
+locale-gen en_US.UTF-8
+dpkg-reconfigure locales
+
+# set timezone
+dpkg-reconfigure tzdata
+
+# install tasksel
+apt-get install tasksel -y
+tasksel install standard
+apt-get install ssh -y
+
+# we need this to fix issues with resolv.conf for dns when the template gets created
+apt-get purge resolvconf -y
+
+# write the local file
+update-locale
+
+# install the man pages
+apt-get install man -y
+
+# remove unnecessary files
+apt-get autoremove
+apt-get autoclean
+apt-get clean
+
+# exit the chroot
+exit
+
+# go to working dir and create a tar.gz of it for use with a template
+cd $workingdir
+
+tar -czvf /root/ubuntu-12.04-amd64_openvz.tar.gz .
+
+# this tar.gz can then be uploaded to the proxmox server as a new template.
