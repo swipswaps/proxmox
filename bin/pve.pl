@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!eusr/bin/perl
 
 use strict;
 use warnings;
@@ -8,9 +8,9 @@ use Net::Proxmox::VE;
 use Data::Dumper;
 use Getopt::Long;
 
-my $host     = 'host';
+my $host     = '10.13.37.202';
 my $username = 'root';
-my $password = 'password';
+my $password = 'cud0hitd$';
 my $debug    = undef;
 
 GetOptions (
