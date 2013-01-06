@@ -29,10 +29,12 @@
 # port install p5.8-crypt-*
 #
 # Linux
-# cpan install Math::BigInt::Calc
+# apt-get install build-essential
+# apt-get install libmath-gmp-perl
 # cpan install Net::SSH::Perl
 # cpan install Math::Pari
-# cpan install Math::GMP
+# cpan install YAML
+# cpan install Math::BigInt::Calc
 
 use strict();
 use warnings;
