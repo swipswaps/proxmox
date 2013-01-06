@@ -1,0 +1,136 @@
+#!/usr/bin/perl -w
+#
+# Viewed best with tabsize 3
+#
+# Modified/Adapted into perl by Phil Kauffman 
+#
+# Copyright (c) 2012 Remy van Elst
+# https://raymii.org/cms/p_Proxbash_-_Bash_script_to_manage_Proxmox_VE
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+# OSX install macports
+# port install p5.8-math-*
+# port install p5.8-crypt-*
+#
+# Linux
+# cpan install Math::BigInt::Calc
+# cpan install Net::SSH::Perl
+# cpan install Math::Pari
+# cpan install Math::GMP
+
+use strict();
+use warnings;
+use Switch;
+use Net::SSH::Perl;
+
+my $host = "10.13.37.202";
+my $port = 22;
+my $user = "root";
+my $pass = "teiG7acu";
+# my @nodes = ("proxmox");
+
+my %sshargs = (
+	protocol		=> 2,
+	port			=> $port,
+	debug			=> 0,
+	interactive	=> 0,
+	options		=> [ "BatchMode yes" ]
+);
+
+# create new host to ssh into
+$ssh = Net::SSH::Perl->new($host, %sshargs);
+# now open a connection
+$ssh->login($user, $pass, %sshargs) || die("SSH: Could not login");
+# to send a command
+# my($stdout, $stderr, $exit) = $ssh->cmd($cmd);
+
+sub createct(){}
+sub startct(){}
+sub stopct(){}
+sub deletect(){}
+sub shelldrop(){}
+sub listcts(){}
+sub listvms(){}
+sub ctinfo(){}
+sub ctexec(){}
+
+sub get_storage_info(){}
+
+sub get_cluster_nextid {
+# usage: my $x = get_cluster_nextid();
+# get next id from server, if exit code is 0 return the ID, otherwise return 0/false
+	my($stdout, $stderr, $exit) = $ssh->cmd("pvesh get /cluster/nextid");
+	if ($exit == 0) {
+		# filter out the quotes from the ID
+		$stdout =~ m/"(\d{3,})"/;
+		my $nextid = $1;
+		return $nextid;
+	} else {
+		return 0;
+	}
+}
+
+
+sub usage() {
+        printf("Create oVZ VM:\n");
+        printf("$0 createct node-hostname node-password node-template node-ram node-disk node-ip\n");
+        printf("\n");
+        printf("Example: $0 createct prod001 supersecret1 ubuntu12 1024 15  172.20.5.48\n");
+        printf("\n");
+        printf("Start vm:\n");
+        printf("$0 startct\n");
+        printf("\n");
+        printf("Stop vm:\n");
+        printf("$0 stopct\n");
+        printf("\n");
+        printf("Remove vm:\n");
+        printf("$0 deletect\n");
+        printf("\n");
+        printf("List all containers (OpenVZ):\n");
+        printf("$0 listcts\n");
+        printf("\n");
+        printf("Get CT info:\n");
+        printf("$0 ctinfo\n");
+        printf("\n");
+        printf("List all virtual machines (KVM)\n");
+        printf("$0 listvms\n");
+        printf("\n");
+        printf("Execute command in ct:\n");
+        printf("$0 execinct ID COMMAND\n");
+        printf("Example: $0 execinct 103 \"apt-get update; apt-get -y upgrade \"\n");
+        printf("Shell dropper\n");
+        printf("$0 shelldrop CTID");
+        printf("$0 shelldrop 101\n");
+}
+
+
+
+switch ($ARGV[0]) {
+	case "createct"	{ createct($ARGV[1], $ARGV[2], $ARGV[3], $ARGV[4], $ARGV[5], $ARGV[6], $ARGV[7], $ARGV[8]) }
+	case "startct"		{ startct($ARGV[1], $ARGV[2]) }
+	case "stopct"		{ stopct($ARGV[1], $ARGV[2]) }
+	case "deletect"	{ deletect(($ARGV[1], $ARGV[2]) }
+	case "shelldrop"	{ shelldrop($ARGV[1], $ARGV[2]) }
+	case "listcts"		{ listcts() }
+	case "listvms"		{ listvms() }
+	case "ctinfo"		{ get_ct_info($ARGV[1], $ARGV[2]) }
+	case "ctexec"		{ ctexec($ARGV[1], $ARGV[2]) }
+	else					{ usage() }
+}
+

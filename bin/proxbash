@@ -1,33 +1,35 @@
 #!/bin/bash
-#Copyright (c) 2012 Remy van Elst
+# Modified/Adapted by Phil Kauffman
+# Copyright (c) 2012 Remy van Elst
 # https://raymii.org/cms/p_Proxbash_-_Bash_script_to_manage_Proxmox_VE
-#Permission is hereby granted, free of charge, to any person obtaining a copy
-#of this software and associated documentation files (the "Software"), to deal
-#in the Software without restriction, including without limitation the rights
-#to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-#copies of the Software, and to permit persons to whom the Software is
-#furnished to do so, subject to the following conditions:
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-#The above copyright notice and this permission notice shall be included in
-#all copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
-#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-#THE SOFTWARE.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 
-#variables to edit
-VAR_PROXMOXHOST="192.168.0.25"
-VAR_PROXMOXSSH="22"
+# variables to edit
+VAR_PROXMOXHOST="10.13.37.202"
+VAR_PROXMOXSSHPORT="22"
 VAR_PROXMOXUSER="root"
 VAR_PROXMOX_NODE="proxmox"
 
 # Also edit the case below for the templates. And make sure you have those templates and they're spelled correctly.
 
 VAR_NODE_NODEID=$[ ( $RANDOM % 900+100 ) + 100 ]
+
 
 function createct() {
 
@@ -80,7 +82,7 @@ if [ ! -z "${8}" ]; then
 		esac
 	fi
 
-	ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSH  "
+	ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSHPORT  "
 	#!/bin/bash
 	TERM=linux
 	export TERM
@@ -96,7 +98,7 @@ if [ ! -z "${8}" ]; then
 }
 
 function list_localcreated_cts () {
-		ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSH  "
+		ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSHPORT  "
 		#!/bin/bash
 		TERM=linux
 		export TERM
@@ -113,7 +115,7 @@ function list_localcreated_cts () {
 }
 
 function list_localcreated_vms () {
-		ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSH  "
+		ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSHPORT  "
 		#!/bin/bash
 		TERM=linux
 		export TERM
@@ -127,11 +129,9 @@ function list_localcreated_vms () {
 }
 
 function startct() {
-
-
 if [ ! -z "${2}" ]; then
 		VAR_NODE_VMID=$2
-		ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSH  "
+		ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSHPORT  "
 		#!/bin/bash
 		TERM=linux
 		export TERM
@@ -148,7 +148,7 @@ if [ ! -z "${2}" ]; then
 		if [ -z "${VAR_NODE_VMID}" ]; then
 			echo "Need VM ID, will now exit."; exit 1;
 		else
-			ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSH  "
+			ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSHPORT  "
 			#!/bin/bash
 			TERM=linux
 			export TERM
@@ -169,7 +169,7 @@ function get_ct_info() {
 
 if [ ! -z "${2}" ]; then
 		VAR_NODE_VMID=$2
-		ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSH  "
+		ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSHPORT  "
 		#!/bin/bash
 		TERM=linux
 		export TERM
@@ -187,7 +187,7 @@ if [ ! -z "${2}" ]; then
 		if [ -z "${VAR_NODE_VMID}" ]; then
 			echo "Need VM ID, will now exit."; exit 1;
 		else
-			ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSH  "
+			ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSHPORT  "
 			#!/bin/bash
 			TERM=linux
 			export TERM
@@ -208,7 +208,7 @@ function stopct() {
 
 if [ ! -z "${2}" ]; then
 		VAR_NODE_VMID=$2
-		ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSH  "
+		ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSHPORT  "
 		#!/bin/bash
 		TERM=linux
 		export TERM
@@ -240,7 +240,7 @@ else
 			;;
 			esac
 
-			ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSH  "
+			ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSHPORT  "
 			#!/bin/bash
 			TERM=linux
 			export TERM
@@ -261,7 +261,7 @@ function deletect() {
 
 if [ ! -z "${2}" ]; then
 		VAR_NODE_VMID=$2
-		ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSH  "
+		ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSHPORT  "
 		#!/bin/bash
 		TERM=linux
 		export TERM
@@ -305,7 +305,7 @@ else
 		exit 1
 		;;
 		esac
-		ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSH  "
+		ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSHPORT  "
 		#!/bin/bash
 		TERM=linux
 		export TERM
@@ -328,7 +328,7 @@ function shelldrop() {
 #first check if vm id is given. If so drop in shell, if not ask.
 if [ ! -z "${2}" ]; then
 		VAR_NODE_VMID=$2
-		ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSH  "
+		ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSHPORT  "
 		#!/bin/bash
 		TERM=linux
 		export TERM
@@ -345,7 +345,7 @@ if [ ! -z "${2}" ]; then
 		if [ -z "${VAR_NODE_VMID}" ]; then
 			echo "Need VM ID, will now exit."; exit 1;
 		else
-		ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSH  "
+		ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSHPORT  "
 		#!/bin/bash
 		TERM=linux
 		export TERM
@@ -372,7 +372,7 @@ if [ ! -z "${2}" ]; then
 			VAR_NODE_COMMAND="$VAR_NODE_COMMAND $3"
   			shift
 		done
-		ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSH  "
+		ssh -t -t $VAR_PROXMOXUSER@$VAR_PROXMOXHOST -p $VAR_PROXMOXSSHPORT  "
 		#!/bin/bash
 		TERM=linux
 		export TERM
@@ -389,6 +389,19 @@ if [ ! -z "${2}" ]; then
 else
 	echo "Need VM ID, will now exit."; exit 1;
 fi
+}
+
+
+send_command(){
+   # ssh to host and filter the results
+   ssh -p $SSHPORT $USER@$HOST "$1" 2> /dev/null | sed 's/^[ \t]*//' | sed 's/"//g' | sed 's/{//g' | sed 's/}//g' | sed 's/\[//g' | sed 's/\]//g' | sed 's/,//g' | sed 's/ : /	/g' | sed '/^$/d'
+}
+
+filter_pvesh_results(){
+	# some sed magic to filter the results to something managable
+	$1 | 2> /dev/null | sed 's/^[ \t]*//' | sed 's/"//g' | sed 's/{//g' | sed 's/}//g' | sed 's/\[//g' | sed 's/\]//g' | sed 's/,//g' | sed 's/ : /   /g' | sed '/^$/d'
+}
+
 }
 
 function usage() {
