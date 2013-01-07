@@ -27,14 +27,14 @@ use Net::SSH::Perl;
 my $host = "10.13.37.202";
 my $port = 22;
 my $user = "root";
-my $pass = "teiG7acu";
+# my $pass = "teiG7acu";
 my $identity = "$ENV{HOME}/.ssh/id_rsa";
 
 my %sshargs = (
    protocol       => 2,
    port           => $port,
    identity_files => [ $identity ],
-   debug          => 1,
+   debug          => 0,
    interactive    => 0,
    options        => [ "BatchMode yes" ],
 );
@@ -164,8 +164,10 @@ sub usage() {
 }
 
 =begin comment
-
-my $action = defined $ARGV[0];
+my $action;
+if ($ARGV[0]){
+	$action = $ARGV[0];	
+}
 
 switch ($action) {
 	case "createct"	{ createct($ARGV[1], $ARGV[2], $ARGV[3], $ARGV[4], $ARGV[5], $ARGV[6], $ARGV[7], $ARGV[8]) }
