@@ -98,7 +98,7 @@ sub send_command(){
 	foreach (@nodes) { 
 		my($stdout, $stderr, $exit) = $ssh->cmd("$command");
 	}
-	
+
 }
 
 sub usage() {
