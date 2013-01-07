@@ -45,17 +45,19 @@ $ssh->login($user, $pass, %sshargs) || die("SSH: Could not login");
 # to send a command
 # my($stdout, $stderr, $exit) = $ssh->cmd($cmd);
 
-sub createct(){}
-sub startct(){}
-sub stopct(){}
-sub deletect(){}
-sub shelldrop(){}
-sub listcts(){}
-sub listvms(){}
-sub ctinfo(){}
-sub ctexec(){}
+#sub createct(){}
+#sub startct(){}
+#sub stopct(){}
+#sub deletect(){}
+#sub shelldrop(){}
+#sub listcts(){}
+#sub listvms(){}
+#sub ctinfo(){}
+#sub ctexec(){}
+#sub get_storage_device_list(){}
+#sub get_cttemplate_list(){}
+#sub get_iso_list(){}
 
-sub get_storage_info(){}
 
 sub get_cluster_nextid {
 # usage: my $x = get_cluster_nextid();
@@ -102,35 +104,35 @@ sub send_command(){
 }
 
 sub usage() {
-        printf("Create oVZ VM:\n");
-        printf("$0 createct node-hostname node-password node-template node-ram node-disk node-ip\n");
-        printf("\n");
-        printf("Example: $0 createct prod001 supersecret1 ubuntu12 1024 15  172.20.5.48\n");
-        printf("\n");
-        printf("Start vm:\n");
-        printf("$0 startct\n");
-        printf("\n");
-        printf("Stop vm:\n");
-        printf("$0 stopct\n");
-        printf("\n");
-        printf("Remove vm:\n");
-        printf("$0 deletect\n");
-        printf("\n");
-        printf("List all containers (OpenVZ):\n");
-        printf("$0 listcts\n");
-        printf("\n");
-        printf("Get CT info:\n");
-        printf("$0 ctinfo\n");
-        printf("\n");
-        printf("List all virtual machines (KVM)\n");
-        printf("$0 listvms\n");
-        printf("\n");
-        printf("Execute command in ct:\n");
-        printf("$0 execinct ID COMMAND\n");
-        printf("Example: $0 execinct 103 \"apt-get update; apt-get -y upgrade \"\n");
-        printf("Shell dropper\n");
-        printf("$0 shelldrop CTID");
-        printf("$0 shelldrop 101\n");
+	printf("Create oVZ VM:\n");
+	printf("$0 createct node-hostname node-password node-template node-ram node-disk node-ip\n");
+	printf("Example: $0 createct prod001 supersecret1 ubuntu12 1024 15  172.20.5.48\n");
+	printf("\n");
+	printf("Start vm:\n");
+	printf("$0 startct\n");
+	printf("\n");
+	printf("Stop vm:\n");
+	printf("$0 stopct\n");
+	printf("\n");
+	printf("Remove vm:\n");
+	printf("$0 deletect\n");
+	printf("\n");
+	printf("List all containers (OpenVZ):\n");
+	printf("$0 listcts\n");
+	printf("\n");
+	printf("Get CT info:\n");
+	printf("$0 ctinfo\n");
+	printf("\n");
+	printf("List all virtual machines (KVM)\n");
+	printf("$0 listvms\n");
+	printf("\n");
+	printf("Execute command in ct:\n");
+	printf("$0 execinct ID COMMAND\n");
+	printf("Example: $0 execinct 103 \"apt-get update; apt-get -y upgrade\" \n");
+	printf("\n");
+	printf("Shell dropper\n");
+	printf("$0 shelldrop CTID");
+	printf("$0 shelldrop 101\n");
 }
 
 =begin comment
@@ -141,12 +143,13 @@ switch ($action) {
 	case "createct"	{ createct($ARGV[1], $ARGV[2], $ARGV[3], $ARGV[4], $ARGV[5], $ARGV[6], $ARGV[7], $ARGV[8]) }
 	case "startct"		{ startct($ARGV[1], $ARGV[2]) }
 	case "stopct"		{ stopct($ARGV[1], $ARGV[2]) }
-	case "deletect"	{ deletect(($ARGV[1], $ARGV[2]) }
+	case "deletect"	{ deletect($ARGV[1], $ARGV[2]) }
 	case "shelldrop"	{ shelldrop($ARGV[1], $ARGV[2]) }
 	case "listcts"		{ listcts() }
 	case "listvms"		{ listvms() }
 	case "ctinfo"		{ get_ct_info($ARGV[1], $ARGV[2]) }
 	case "ctexec"		{ ctexec($ARGV[1], $ARGV[2]) }
+	case "usage"		{ usage() }
 	else					{ usage() }
 }
 
