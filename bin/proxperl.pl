@@ -28,7 +28,6 @@ my $host = "10.13.37.202";
 my $port = 22;
 my $user = "root";
 my $pass = "teiG7acu";
-my @nodes = ("proxmox");
 
 my %sshargs = (
 	protocol		=> 2,
@@ -57,7 +56,7 @@ $ssh->login($user, $pass, %sshargs) || die("SSH: Could not login");
 #sub get_storage_device_list(){}
 #sub get_cttemplate_list(){}
 #sub get_iso_list(){}
-
+#sub get_vm_list(){}
 
 sub get_cluster_nextid {
 # usage: my $x = get_cluster_nextid();
@@ -73,7 +72,6 @@ sub get_cluster_nextid {
 	}
 }
 
-get_ct_list();
 sub get_ct_list(){
 # Returns an array of all CTs on the connected node.
 	my @ctlist;
@@ -90,17 +88,36 @@ sub get_ct_list(){
 			}
 		}
 	}
-	if ( defined @ctlist ){ return @ctlist; }
+	if ( $exit == 0 && @ctlist ){ return @ctlist; } else { return 0; }
 }
 
-#sub get_vm_list(){}
+sub get_cluster_nodes(){
+# Returns an array of all nodes in the cluster
+   my @nodes;
+   my $count = 0;
+   # get list of cts
+   my($stdout, $stderr, $exit) = $ssh->cmd("pvesh get nodes");
+   # if the command exited cleanly
+   if($exit == 0) {
+      @lines = split("\n", $stdout);
+      for (my $i = 0; $i <= $#lines; $i++) {
+         if ($lines[$i] =~  m/"node" : "(\D{1,})",/){
+            $nodes[$count] = $1;
+				$count++;
+         }
+      }
+   }
+	if ( $exit == 0 && @nodes ){ return @nodes; } else { return 0; }
+}
 
 sub send_command(){
 	my $command = @_;
-	foreach (@nodes) { 
+	my @nodes = get_cluster_nodes();	
+
+	for (my $i = 0; $i <= $#nodes; $i++){
 		my($stdout, $stderr, $exit) = $ssh->cmd("$command");
 	}
-
+	return($stdout, $stderr, $exit);
 }
 
 sub usage() {
