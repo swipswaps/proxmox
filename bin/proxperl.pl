@@ -24,23 +24,25 @@ use warnings;
 use Switch;
 use Net::SSH::Perl;
 
-my $host = "chelsea.cs.uchicago.edu";
+my $host = "10.13.37.202";
 my $port = 22;
 my $user = "root";
 my $pass = "teiG7acu";
+my $identity = "$ENV{HOME}/.ssh/id_rsa";
 
 my %sshargs = (
-	protocol		=> 2,
-	port			=> $port,
-	debug			=> 0,
-	interactive	=> 0,
-	options		=> [ "BatchMode yes" ]
+   protocol       => 2,
+   port           => $port,
+   identity_files => [ $identity ],
+   debug          => 1,
+   interactive    => 0,
+   options        => [ "BatchMode yes" ],
 );
 
 # create new host to ssh into
 $ssh = Net::SSH::Perl->new($host, %sshargs);
 # now open a connection
-$ssh->login($user, $pass, %sshargs) || die("SSH: Could not login");
+$ssh->login($user, %sshargs) || die("SSH: Could not login");
 # to send a command
 # my($stdout, $stderr, $exit) = $ssh->cmd($cmd);
 
