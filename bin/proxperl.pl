@@ -24,7 +24,7 @@ use warnings;
 use Switch;
 use Net::SSH::Perl;
 
-my $host = "10.13.37.202";
+my $host = "chelsea.cs.uchicago.edu";
 my $port = 22;
 my $user = "root";
 my $pass = "teiG7acu";
@@ -91,6 +91,7 @@ sub get_ct_list(){
 	if ( $exit == 0 && @ctlist ){ return @ctlist; } else { return 0; }
 }
 
+# print_array(get_cluster_nodes());
 sub get_cluster_nodes(){
 # Returns an array of all nodes in the cluster
    my @nodes;
@@ -118,6 +119,14 @@ sub send_command(){
 		my($stdout, $stderr, $exit) = $ssh->cmd("$command");
 	}
 	return($stdout, $stderr, $exit);
+}
+
+sub print_array(){
+# used for debug only: Will print out the entire contents of a 1D array.
+	@array = @_;
+	for (my $i = 0; $i <= $#array; $i++){
+		print "$array[$i]\n";
+	}
 }
 
 sub usage() {
