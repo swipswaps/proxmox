@@ -67,7 +67,7 @@ sub get_cluster_nextid() {
 	
 	my($stdout, $stderr, $exit) = send_command($host, "pvesh get /cluster/nextid");
 	# matching for: "122"
-	my $pattern = qr/"(\d{3,})"/m;
+	my $pattern = qr/"(\d{3,})"/;
 	
 	# save the filtered array to @tmp
 	# In this case it will only have one value at @nextid[0]
@@ -133,17 +133,6 @@ sub get_cluster_nodes(){
 	# If @nodes is populated, return the array @nodes, otherwise return false/0
 	if ( @nodes ){ return @nodes; } else { return 0; }
 }
-
-
-my($stdout, $stderr, $exit) = send_command($host, "pvesh get /nodes");
-print "$stdout\n"; # works
-print "$exit\n"; # prints 0
-my $patterns = qr/"node".*"(.*)"/;
-print "$patterns\n";
-
-my @tmp = array_pattern_filter($patterns, $stdout, $stderr, $exit);
-
-print "$tmp[0]\n";
 
 sub send_command(){
 # sends a command to a given hoset and return stdout, stderr, and exit code
