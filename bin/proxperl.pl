@@ -141,7 +141,7 @@ sub get_cluster_nodes(){
 my($stdout, $stderr, $exit) = send_command($host, "pvesh get /nodes");
 print "$stdout\n"; # works
 print "$exit\n"; # prints 0
-my $patterns = qq(m/"node".*"(.*)"/);
+my $patterns = qr/"node".*"(.*)"/;
 print "$patterns\n";
 
 my @tmp = array_pattern_filter($patterns, $stdout, $stderr, $exit);
