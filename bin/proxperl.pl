@@ -11,13 +11,10 @@
 # port install p5.8-math-*
 # port install p5.8-crypt-*
 #
-# Linux
-# apt-get install build-essential
-# apt-get install libmath-gmp-perl
-# cpan install Net::SSH::Perl
-# cpan install Math::Pari
-# cpan install YAML
-# cpan install Math::BigInt::Calc
+# Debian
+# apt-get install build-essential libmath-gmp-perl pari-gp libnet-ssh-perl libmath-bigint-perl libswitch-perl libyaml-perl libnet-ssh2-perl
+# wget http://launchpadlibrarian.net/10329937/libnet-ssh-perl-perl_1.30-1_all.deb
+# dpkg -i libnet-ssh-perl-perl_1.30-1_all.deb
 
 use strict();
 use warnings;
@@ -70,7 +67,7 @@ sub get_cluster_nextid() {
 	
 	my($stdout, $stderr, $exit) = send_command($host, "pvesh get /cluster/nextid");
 	# matching for: "122"
-	my $pattern = q(m/"(\d{3,})"/);
+	my $pattern = qr/"(\d{3,})"/m;
 	
 	# save the filtered array to @tmp
 	# In this case it will only have one value at @nextid[0]
@@ -96,8 +93,8 @@ sub get_ct_list(){
 		my($stdout, $stderr, $exit) = send_command($nodes[$i], "pvesh get /nodes/$nodes[$i]/openvz");
 
 		# We are looking for this pattern: "vmid" : "109"
-		my $pattern = q(m/"vmid" : "(\d{3,})"/);
-		
+		my $pattern = qr/"vmid" : "(\d{3,})"/m;	
+	
 		# Append the returned array to our main ct list (@ctlist). If the return code is not 0.
 		if ( my @tmp = array_pattern_filter($pattern, $stdout, $stderr, $exit)){
 			push(@ctlist, @tmp);
@@ -123,7 +120,7 @@ sub get_cluster_nodes(){
 	if ($exit == 0 ){
 
 		# match anything in between the quotes: "node" : "nodename",
-		my $pattern = q(m/"node" : "(.*)",/);
+		my $pattern = qr/"node" : "(.*)",/;
 
 		# save returned array to nice variable name
 		my @nodes = array_pattern_filter($pattern, $stdout, $stderr, $exit);
@@ -165,31 +162,14 @@ sub send_command(){
 
 sub array_pattern_filter(){
 # Function takes an input pattern, stdout, stderr and an exit code
-# and will return an array of only the content on which you matched.	
-	my($pattern, $stdout, $stderr, $exit) = @_;
-	my @array = ();
-	my $count = 0;
+# and will return an array of only the content on which you matched.    
+        my($pattern, $stdout, $stderr, $exit) = @_;
 
-	# If the exit code from the command passed in is good, continue
-	if($exit == 0) {
-		# split all lines into an array
-		my @lines = split("\n", $stdout);
-		
-		# cycle through array matching for $pattern
-		for (my $i = 0; $i <= $#lines; $i++) {
-			if ($lines[$i] =~  $pattern){
-				# when $pattern found save to @array
-				$array[$count] = $1;
-				$count++;
-			}
-		}
-	} else {
-		# if exit code ($exit) is no good, stop
-		return 0;
-	}
-	# If the command exited cleanly and @nodes is populated return the array @nodes
-	# otherwise return false/0
-	if ( @array ){ return @array; } else { return 0; }
+        if (!$exit) {
+          return ( $stdout =~ /$pattern/gs);
+        }
+
+        return 0;
 }
 
 sub print_array(){
