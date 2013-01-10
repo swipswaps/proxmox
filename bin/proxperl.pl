@@ -88,9 +88,9 @@ sub get_ct_list(){
 
 	# get list of cts on each node
 	# For each node...
-	for (my $i = 0; $i <= $#nodes; $i++){
-		# ssh into $nodes[$i] and get stdout, stderr and the exit code
-		my($stdout, $stderr, $exit) = send_command($nodes[$i], "pvesh get /nodes/$nodes[$i]/openvz");
+	foreach (@nodes){
+		# ssh into $_ and get stdout, stderr and the exit code
+		my($stdout, $stderr, $exit) = send_command($_, "pvesh get /nodes/$_/openvz");
 
 		# We are looking for this pattern: "vmid" : "109"
 		my $pattern = qr/"vmid" : "(\d{3,})"/m;	
@@ -152,21 +152,20 @@ sub send_command(){
 sub array_pattern_filter(){
 # Function takes an input pattern, stdout, stderr and an exit code
 # and will return an array of only the content on which you matched.    
-        my($pattern, $stdout, $stderr, $exit) = @_;
+	my($pattern, $stdout, $stderr, $exit) = @_;
 
-        if (!$exit) {
-          return ( $stdout =~ /$pattern/gs);
-        }
-
-        return 0;
+	if (!$exit) {
+		return ( $stdout =~ /$pattern/gs);
+	}
+	return 0;
 }
 
 sub print_array(){
 # used for debug only: Will print out the entire contents of a 1D array.
 	my @array = @_;
 	# print every value in @array
-	for (my $i = 0; $i <= $#array; $i++){
-		print "$array[$i]\n";
+	foreach (@array){
+		print "$_\n";
 	}
 }
 
