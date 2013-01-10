@@ -37,9 +37,9 @@ my %sshargs = (
 );
 
 # create new host to ssh into
-$ssh = Net::SSH::Perl->new($host, %sshargs);
+# $ssh = Net::SSH::Perl->new($host, %sshargs);
 # now open a connection
-$ssh->login($user, %sshargs) || die("SSH: Could not login");
+# $ssh->login($user, %sshargs) || die("SSH: Could not login");
 # to send a command
 # my($stdout, $stderr, $exit) = $ssh->cmd($cmd);
 
@@ -72,13 +72,15 @@ sub get_cluster_nextid() {
 	# save the filtered array to @tmp
 	# In this case it will only have one value at @nextid[0]
 	if ( @nextid = array_pattern_filter($pattern, $stdout, $stderr, $exit)){
-		# returning the nextid :)
+		# returning the nextid
 		return $nextid[0];
 	} else {
-		# apparently you have run into the hard coded value of 10,000. Damn. Props!
+		# apparently you have run into the hard coded value of 10,000. Damn...
 		return 0;
 	}
 }
+
+print(get_ct_list());
 
 sub get_ct_list(){
 # Returns an array of all CTs on the connected node.
@@ -88,9 +90,9 @@ sub get_ct_list(){
 
 	# get list of cts on each node
 	# For each node...
-	for (my $i = 0; $i <= $#nodes; $i++){
+	foreach(@nodes){
 		# ssh into $nodes[$i] and get stdout, stderr and the exit code
-		my($stdout, $stderr, $exit) = send_command($nodes[$i], "pvesh get /nodes/$nodes[$i]/openvz");
+		my($stdout, $stderr, $exit) = send_command($_, "pvesh get /nodes/$_/openvz");
 
 		# We are looking for this pattern: "vmid" : "109"
 		my $pattern = qr/"vmid" : "(\d{3,})"/m;	
@@ -118,7 +120,7 @@ sub get_cluster_nodes(){
 	
 	# if the above command exited cleanly, continue.
 	if ($exit == 0 ){
-
+	
 		# match anything in between the quotes: "node" : "nodename",
 		my $pattern = qr/"node" : "(.*)",/;
 
@@ -152,21 +154,23 @@ sub send_command(){
 sub array_pattern_filter(){
 # Function takes an input pattern, stdout, stderr and an exit code
 # and will return an array of only the content on which you matched.    
-        my($pattern, $stdout, $stderr, $exit) = @_;
+	my($pattern, $stdout, $stderr, $exit) = @_;
 
-        if (!$exit) {
-          return ( $stdout =~ /$pattern/gs);
-        }
-
-        return 0;
+	if (!$exit) {
+		# perl magic to return an array that is filtered on $pattern
+		# This returns an array.
+		return ( $stdout =~ /$pattern/gs);
+	} else {
+		return 0;
+	}
 }
 
 sub print_array(){
 # used for debug only: Will print out the entire contents of a 1D array.
 	my @array = @_;
 	# print every value in @array
-	for (my $i = 0; $i <= $#array; $i++){
-		print "$array[$i]\n";
+	foreach(@array){
+		print "$_\n";
 	}
 }
 
