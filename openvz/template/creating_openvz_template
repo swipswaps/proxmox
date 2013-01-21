@@ -45,7 +45,6 @@ createct(){
 	# create basic.conf
 cat > /etc/pve/openvz/ve-basic.conf-sample <<EOF
 ONBOOT="yes"
-
 PHYSPAGES="0:512M"
 SWAPPAGES="0:512M"
 KMEMSIZE="232M:256M"
@@ -67,13 +66,11 @@ DGRAMRCVBUF="unlimited"
 NUMOTHERSOCK="unlimited"
 NUMFILE="unlimited"
 NUMIPTENT="unlimited"
-
 # Disk quota parameters (in form of softlimit:hardlimit)
 DISKSPACE="4G:4613734"
 DISKINODES="800000:880000"
 QUOTATIME="0"
 QUOTAUGIDLIMIT="0"
-
 # CPU fair scheduler parameter
 CPUUNITS="1000"
 CPUS="1"
@@ -247,7 +244,18 @@ cleanup(){
 	vzctl exec $CTID "apt-get autoremove"
 	vzctl exec $CTID "apt-get autoclean"
 	vzctl exec $CTID "apt-get clean"
+	# clear logs
+
 }
 
+createtemplate(){
+	vzctl set $CTID --ipdel all --save
+	vzctl stop $ID
+	cd /var/lib/vz/private/$CTID/
+	mkdir /root/template
+	rsync -avz /var/lib/vz/private/$CTID/ /root/template/
+	rm /root/template/aquota*
+	tar -czvf /root/ubuntu-12.04-x86_64_`date "+%Y%m%d`.tar.gz /root/template/
+}
 
 main
