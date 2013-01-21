@@ -24,6 +24,7 @@ debootstrap(){
 	# install debootstrap from ubuntu deb
 	wget http://archive.ubuntu.com/ubuntu/pool/main/d/debootstrap/debootstrap_1.0.42_all.deb
 	dpkg -i debootstrap_1.0.42_all.deb
+	rm debootstrap_1.0.42_all.deb
 
 	# create a directory in which you wish to install ubuntu.
 	workingdir=/root/ubuntu-12.04-amd64_openvz-template
@@ -43,47 +44,13 @@ debootstrap(){
 }
 
 createct(){
-	# create basic.conf
-cat > /etc/pve/openvz/ve-basic.conf-sample <<EOF
-ONBOOT="yes"
-PHYSPAGES="0:512M"
-SWAPPAGES="0:512M"
-KMEMSIZE="232M:256M"
-DCACHESIZE="116M:128M"
-LOCKEDPAGES="256M"
-PRIVVMPAGES="unlimited"
-SHMPAGES="unlimited"
-NUMPROC="unlimited"
-VMGUARPAGES="0:unlimited"
-OOMGUARPAGES="0:unlimited"
-NUMTCPSOCK="unlimited"
-NUMFLOCK="unlimited"
-NUMPTY="unlimited"
-NUMSIGINFO="unlimited"
-TCPSNDBUF="unlimited"
-TCPRCVBUF="unlimited"
-OTHERSOCKBUF="unlimited"
-DGRAMRCVBUF="unlimited"
-NUMOTHERSOCK="unlimited"
-NUMFILE="unlimited"
-NUMIPTENT="unlimited"
-# Disk quota parameters (in form of softlimit:hardlimit)
-DISKSPACE="4G:4613734"
-DISKINODES="800000:880000"
-QUOTATIME="0"
-QUOTAUGIDLIMIT="0"
-# CPU fair scheduler parameter
-CPUUNITS="1000"
-CPUS="1"
-SEARCHDOMAIN="lan"
-NAMESERVER="10.13.37.1"
-NETIF=""
-VE_ROOT="/var/lib/vz/root/$VEID"
-VE_PRIVATE="/var/lib/vz/private/$VEID"
-EOF
-
 	# create new template CT
-	vzctl create $CTID --ostemplate ubuntu-12.04-amd64_openvz --config basic --hostname template --ipadd 10.13.37.253
+	vzctl create $CTID --ostemplate ubuntu-12.04-amd64_openvz-template
+	vzctl set $CTID --onboot yes --save
+	vzctl set $CTID --ipadd 10.13.37.253 --save
+	vzctl set $CTID --nameserver 10.13.37.1 --save
+	vzctl set $CTID --hostname template --save
+	vzctl set $CTID --diskspace 4G:5G --save
 	vzctl start $CTID
 }
 
