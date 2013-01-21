@@ -43,7 +43,7 @@ debootstrap(){
 
 createct(){
 	# create basic.conf
-cat > /etc/vz/conf/basic.conf <<EOF
+cat > /etc/pve/openvz/ve-basic.conf-sample <<EOF
 ONBOOT="yes"
 
 PHYSPAGES="0:512M"
@@ -85,84 +85,104 @@ VE_PRIVATE="/var/lib/vz/private/$VEID"
 EOF
 
 	# create new template CT
-	vztctl create $CTID --ostemplate ubuntu-12.04-amd64_openvz --config basic --hostname template --ipaddr 10.13.37.253 --save
+	vzctl create $CTID --ostemplate ubuntu-12.04-amd64_openvz --config basic --hostname template --ipadd 10.13.37.253
 	vzctl start $CTID
 }
 
 ct-config-apt(){
 	# configure apt
+read -r -d '' VAR <<'END'
 cat > /etc/apt/sources.list <<EOF
 deb http://archive.ubuntu.com/ubuntu precise main restricted universe
 deb http://archive.ubuntu.com/ubuntu precise-updates main restricted universe
 deb http://archive.ubuntu.com/ubuntu precise-security main restricted universe
 EOF
+END
+
+echo "$VAR" | vzctl exec $CTID -
+
 	# full upgrade
-	apt-get update
-	apt-get dist-upgrade -y
+	vzctl exec $CTID "apt-get update"
+	vzctl exec $CTID "apt-get dist-upgrade -y"
 
 	# install tasksel and standard server files
-	apt-get install tasksel -y
-	tasksel install standard
-	apt-get install ssh -y
-
-	# install the man pages
-	apt-get install man -y
+	vzctl exec $CTID "apt-get install tasksel -y"
+	vzctl exec $CTID "tasksel install standard"
+	vzctl exec $CTID "apt-get install ssh -y"
 }
-
 
 syslog(){
 	# rsyslog cause the cpu to go to 100% :(
-	apt-get install syslog-ng -y
-	apt-get remove rsyslog -y
+	vzctl exec $CTID "apt-get install syslog-ng -y"
+	vzctl exec $CTID "apt-get remove rsyslog -y"
 
 	# fix for logrotate and syslog-ng
-	sed -i 's|#SYSLOGNG_OPTS=|SYSLOGNG_OPTS=|' /etc/default/syslog-ng
+	vzctl exec $CTID "sed -i 's|#SYSLOGNG_OPTS=|SYSLOGNG_OPTS=|' /etc/default/syslog-ng"
 }
 
 locales(){
 	# set locale
-	locale-gen en_US
-	locale-gen en_US.UTF-8
-	dpkg-reconfigure locales
+	vzctl exec $CTID "locale-gen en_US"
+	vzctl exec $CTID "locale-gen en_US.UTF-8"
+	vzctl exec $CTID "dpkg-reconfigure locales"
 
 	# set timezone
 	# dpkg-reconfigure tzdata
-	ln -sf /usr/share/zoneinfo/America/Chicago /etc/localtime
+	vzctl exec $CTID "ln -sf /usr/share/zoneinfo/America/Chicago /etc/localtime"
+
+	# write the local file
+	vzctl exec $CTID "update-locale"
 }
 
 resolvconf(){
 	# we need this to fix issues with resolv.conf for dns when the template gets created
-	apt-get purge resolvconf -y
-
-	# write the local file
-	update-locale
+	vzctl exec $CTID "apt-get purge resolvconf -y"
 }
 
 unattended-upgrades(){
 	# install unattended upgrades
-	apt-get install -y unattended-upgrades update-notifier-common
+	vzctl exec $CTID "apt-get install -y unattended-upgrades update-notifier-common"
 
-	cat > /etc/apt/apt.conf.d/10periodic <<EOF
+read -r -d '' VAR <<'END'
+cat > /etc/apt/apt.conf.d/10periodic <<EOF
 APT::Periodic::Update-Package-Lists "1";
 APT::Periodic::Download-Upgradeable-Packages "1";
 APT::Periodic::AutocleanInterval "7";
 APT::Periodic::Unattended-Upgrade "1";
 EOF
+END
+echo "$VAR" | vzctl exec $CTID -
 
-	cp /etc/apt/apt.conf.d/50unattended-upgrades /etc/apt/apt.conf.d/unattended-upgrades.50.bak
-	cat > /etc/apt/apt.conf.d/50unattended-upgrades <<EOF
+	vzctl exec $CTID "cp /etc/apt/apt.conf.d/50unattended-upgrades /etc/apt/apt.conf.d/unattended-upgrades.50.bak"
+
+read -r -d '' VAR <<'END'
+cat > /etc/apt/apt.conf.d/50unattended-upgrades <<EOF
 Unattended-Upgrade::Allowed-Origins {
-        "${distro_id}:${distro_codename}-security";
-        "${distro_id}:${distro_codename}-updates";
+        "\${distro_id}:\${distro_codename}-security";
+        "\${distro_id}:\${distro_codename}-updates";
+//      "\${distro_id}:\${distro_codename}-proposed";
+//      "\${distro_id}:\${distro_codename}-backports";
 };
+Unattended-Upgrade::Package-Blacklist {
+//      "libc6";
+};
+
+Unattended-Upgrade::AutoFixInterruptedDpkg "true";
+Unattended-Upgrade::Mail "root@localhost";
+Unattended-Upgrade::MailOnlyOnError "true";
+Unattended-Upgrade::Remove-Unused-Dependencies "false";
+Unattended-Upgrade::Automatic-Reboot "false";
 EOF
+END
+echo "$VAR" | vzctl exec $CTID -
 }
 
 email(){
 	# sending email alerts
-	apt-get install ssmtp -y
+	vzctl exec $CTID "apt-get install ssmtp -y"
 
-	cat > /etc/ssmtp/ssmtp.conf <<EOF
+read -r -d '' VAR <<'END'
+cat > /etc/ssmtp/ssmtp.conf <<EOF
 root=$EMAIL
 mailhub=smtp.gmail.com:587
 rewriteDomain=pklan.org
@@ -172,41 +192,62 @@ AuthUser=$USER
 AuthPass=$PASS
 FromLineOverride=YES
 EOF
+END
+echo "$VAR" | vzctl exec $CTID -
 	
-	chmod 640 /etc/ssmtp/ssmtp.conf
+	vzctl exec $CTID "chmod 640 /etc/ssmtp/ssmtp.conf"
 
-	cat > /etc/ssmtp/revaliases <<EOF
+read -r -d '' VAR <<'END'
+cat > /etc/ssmtp/revaliases <<EOF
 root:$EMAIL:smtp.gmail.com:587
 EOF
-
+END
+	echo "$VAR" | vzctl exec $CTID -
 }
 
 fail2ban(){
 	# Install fail2ban
-	apt-get install fail2ban -y
+	vzctl exec $CTID "apt-get install fail2ban -y"
 
-	
+read -r -d '' VAR <<'END'
+cat > /etc/fail2ban/jail.local <<EOF
+[DEFAULT]
+ignoreip = 127.0.0.1/8 $IP
+bantime  = 600
+maxretry = 3
+backend = auto
+destemail = root@localhost
+banaction = iptables-multiport
+mta = sendmail
+protocol = tcp
+chain = INPUT
+
+action_ = %(banaction)s[name=%(__name__)s, port="%(port)s", protocol="%(protocol)s", chain="%(chain)s"]
+action_mw = %(banaction)s[name=%(__name__)s, port="%(port)s", protocol="%(protocol)s", chain="%(chain)s"]
+              %(mta)s-whois[name=%(__name__)s, dest="%(destemail)s", protocol="%(protocol)s", chain="%(chain)s"]
+action_mwl = %(banaction)s[name=%(__name__)s, port="%(port)s", protocol="%(protocol)s", chain="%(chain)s"]
+               %(mta)s-whois-lines[name=%(__name__)s, dest="%(destemail)s", logpath=%(logpath)s, chain="%(chain)s"]
+action = %(action_)s
+
+[ssh]
+enabled  = true
+port     = ssh
+filter   = sshd
+logpath  = /var/log/auth.log
+maxretry = 6
+EOF
+END
+echo "$VAR" | vzctl exec $CTID -
+	# restart fail2ban
+	vzctl exec $CTID "/etc/init.d/fail2ban restart"
 }
 
 cleanup(){
 	# remove unnecessary files
-	apt-get autoremove
-	apt-get autoclean
-	apt-get clean
+	vzctl exec $CTID "apt-get autoremove"
+	vzctl exec $CTID "apt-get autoclean"
+	vzctl exec $CTID "apt-get clean"
 }
 
 
-case $1 in
-	debian*)
-		OS=
-		main
-	;;
-	ubuntu*)
-		OS=
-		main
-	;;
-	*)
-		echo "Options: debian, ubuntu"
-		exit
-	;;
-esac
+main
