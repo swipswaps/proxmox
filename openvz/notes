@@ -1,2 +1,10 @@
 proxmox api
 http://pve.proxmox.com/wiki/Proxmox_VE_API
+
+# right after deboot install
+root@zion:/# dpkg -l | wc
+    156    1309   15362
+
+# install ubuntu server
+
+

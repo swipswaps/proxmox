@@ -21,7 +21,7 @@ use warnings;
 use Switch;
 use Net::SSH::Perl;
 
-our $host = "10.13.37.202";
+our $host = "chelsea.cs.uchicago.edu";
 my $port = 22;
 my $user = "root";
 # my $pass = "teiG7acu";
@@ -37,9 +37,9 @@ my %sshargs = (
 );
 
 # create new host to ssh into
-# $ssh = Net::SSH::Perl->new($host, %sshargs);
+$ssh = Net::SSH::Perl->new($host, %sshargs);
 # now open a connection
-# $ssh->login($user, %sshargs) || die("SSH: Could not login");
+$ssh->login($user, %sshargs) || die("SSH: Could not login");
 # to send a command
 # my($stdout, $stderr, $exit) = $ssh->cmd($cmd);
 

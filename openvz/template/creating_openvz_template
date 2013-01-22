@@ -3,7 +3,7 @@
 # source: http://blog.bodhizazen.net/linux/ubuntu-10-04-openvz-templates/
 
 CTID=900
-IP="10.13.37.253"
+IP=10.13.37.253
 USER=pklan.notification
 EMAIL=$USER@gmail.com
 PASS="password"
@@ -93,6 +93,7 @@ EOF
 	vzctl set $CTID --nameserver 10.13.37.1 --save
 	vzctl set $CTID --hostname template --save
 	vzctl set $CTID --diskspace 4G:5G --save
+	pause 5
 	vzctl start $CTID
 }
 
@@ -266,6 +267,7 @@ createtemplate(){
 	rsync -avz /var/lib/vz/private/$CTID/ /root/template/
 	rm /root/template/aquota*
 	tar -czvf /root/ubuntu-12.04-x86_64_`date "+%Y%m%d"`.tar.gz /root/template/
+	cp /root/template/ubuntu-12.04-x86_64_*.tar.gz /var/lib/vz/template/cache/
 }
 
 main
