@@ -3,28 +3,32 @@
 # source: http://blog.bodhizazen.net/linux/ubuntu-10-04-openvz-templates/
 
 CTID=900
+IP="10.13.37.253"
 USER=pklan.notification
 EMAIL=$USER@gmail.com
 PASS="password"
 
 main(){
 	debootstrap
-#	createct
-#	ct-config-apt
-#	syslog
-#	locales
+	createct
+	ct-config-apt
+	syslog
+	locales
 #	resolvconf
-#	unattended-upgrades
-#	email
-#	fail2ban
-#	cleanup					
+	unattended-upgrades
+	email
+	fail2ban
+	cleanup
+	createtemplate
 }
 
 debootstrap(){
 	# install debootstrap from ubuntu deb
-	wget http://archive.ubuntu.com/ubuntu/pool/main/d/debootstrap/debootstrap_1.0.42_all.deb
-	dpkg -i debootstrap_1.0.42_all.deb
-	rm debootstrap_1.0.42_all.deb
+	if [ ! -f /usr/bin/debootstrap ]; then
+		wget http://archive.ubuntu.com/ubuntu/pool/main/d/debootstrap/debootstrap_1.0.42_all.deb
+		dpkg -i debootstrap_1.0.42_all.deb
+		rm debootstrap_1.0.42_all.deb
+	fi
 
 	# create a directory in which you wish to install ubuntu.
 	workingdir=/root/ubuntu-12.04-amd64_openvz-template
@@ -44,10 +48,48 @@ debootstrap(){
 }
 
 createct(){
+cat > /etc/pve/openvz/ve-mybasic.conf-sample <<EOF
+ONBOOT="yes"
+PHYSPAGES="0:512M"
+SWAPPAGES="0:512M"
+KMEMSIZE="232M:256M"
+DCACHESIZE="116M:128M"
+LOCKEDPAGES="256M"
+PRIVVMPAGES="unlimited"
+SHMPAGES="unlimited"
+NUMPROC="unlimited"
+VMGUARPAGES="0:unlimited"
+OOMGUARPAGES="0:unlimited"
+NUMTCPSOCK="unlimited"
+NUMFLOCK="unlimited"
+NUMPTY="unlimited"
+NUMSIGINFO="unlimited"
+TCPSNDBUF="unlimited"
+TCPRCVBUF="unlimited"
+OTHERSOCKBUF="unlimited"
+DGRAMRCVBUF="unlimited"
+NUMOTHERSOCK="unlimited"
+NUMFILE="unlimited"
+NUMIPTENT="unlimited"
+# Disk quota parameters (in form of softlimit:hardlimit)
+DISKSPACE="4G:4613734"
+DISKINODES="800000:880000"
+QUOTATIME="0"
+QUOTAUGIDLIMIT="0"
+# CPU fair scheduler parameter
+CPUUNITS="1000"
+CPUS="1"
+SEARCHDOMAIN="lan"
+NAMESERVER="10.13.37.1"
+NETIF=""
+VE_ROOT="/var/lib/vz/root/\$VEID"
+VE_PRIVATE="/var/lib/vz/private/\$VEID"
+EOF
+
 	# create new template CT
-	vzctl create $CTID --ostemplate ubuntu-12.04-amd64_openvz-template
+	vzctl create $CTID --ostemplate ubuntu-12.04-amd64_openvz --config mybasic
 	vzctl set $CTID --onboot yes --save
-	vzctl set $CTID --ipadd 10.13.37.253 --save
+	vzctl set $CTID --ipadd $IP --save
 	vzctl set $CTID --nameserver 10.13.37.1 --save
 	vzctl set $CTID --hostname template --save
 	vzctl set $CTID --diskspace 4G:5G --save
@@ -64,49 +106,49 @@ deb http://archive.ubuntu.com/ubuntu precise-security main restricted universe
 EOF
 END
 
-echo "$VAR" | vzctl exec $CTID -
+echo "$VAR" | vzctl exec2 $CTID -
 
 	# full upgrade
-	vzctl exec $CTID "apt-get update"
-	vzctl exec $CTID "apt-get dist-upgrade -y"
+	vzctl exec2 $CTID "apt-get update"
+	vzctl exec2 $CTID "apt-get dist-upgrade -y"
 
 	# install tasksel and standard server files
-	vzctl exec $CTID "apt-get install tasksel -y"
-	vzctl exec $CTID "tasksel install standard"
-	vzctl exec $CTID "apt-get install ssh -y"
+	vzctl exec2 $CTID "apt-get install tasksel -y"
+	vzctl exec2 $CTID "tasksel install standard"
+	vzctl exec2 $CTID "apt-get install ssh -y"
 }
 
 syslog(){
 	# rsyslog cause the cpu to go to 100% :(
-	vzctl exec $CTID "apt-get install syslog-ng -y"
-	vzctl exec $CTID "apt-get remove rsyslog -y"
+	vzctl exec2 $CTID "apt-get install syslog-ng -y"
+	vzctl exec2 $CTID "apt-get remove rsyslog -y"
 
 	# fix for logrotate and syslog-ng
-	vzctl exec $CTID "sed -i 's|#SYSLOGNG_OPTS=|SYSLOGNG_OPTS=|' /etc/default/syslog-ng"
+	vzctl exec2 $CTID "sed -i 's|#SYSLOGNG_OPTS=|SYSLOGNG_OPTS=|' /etc/default/syslog-ng"
 }
 
 locales(){
 	# set locale
-	vzctl exec $CTID "locale-gen en_US"
-	vzctl exec $CTID "locale-gen en_US.UTF-8"
-	vzctl exec $CTID "dpkg-reconfigure locales"
+	vzctl exec2 $CTID "locale-gen en_US"
+	vzctl exec2 $CTID "locale-gen en_US.UTF-8"
+	vzctl exec2 $CTID "dpkg-reconfigure locales"
 
 	# set timezone
 	# dpkg-reconfigure tzdata
-	vzctl exec $CTID "ln -sf /usr/share/zoneinfo/America/Chicago /etc/localtime"
+	vzctl exec2 $CTID "ln -sf /usr/share/zoneinfo/America/Chicago /etc/localtime"
 
 	# write the local file
-	vzctl exec $CTID "update-locale"
+	vzctl exec2 $CTID "update-locale"
 }
 
 resolvconf(){
 	# we need this to fix issues with resolv.conf for dns when the template gets created
-	vzctl exec $CTID "apt-get purge resolvconf -y"
+	vzctl exec2 $CTID "apt-get purge resolvconf -y"
 }
 
 unattended-upgrades(){
 	# install unattended upgrades
-	vzctl exec $CTID "apt-get install -y unattended-upgrades update-notifier-common"
+	vzctl exec2 $CTID "apt-get install -y unattended-upgrades update-notifier-common"
 
 read -r -d '' VAR <<'END'
 cat > /etc/apt/apt.conf.d/10periodic <<EOF
@@ -116,9 +158,9 @@ APT::Periodic::AutocleanInterval "7";
 APT::Periodic::Unattended-Upgrade "1";
 EOF
 END
-echo "$VAR" | vzctl exec $CTID -
+echo "$VAR" | vzctl exec2 $CTID -
 
-	vzctl exec $CTID "cp /etc/apt/apt.conf.d/50unattended-upgrades /etc/apt/apt.conf.d/unattended-upgrades.50.bak"
+	vzctl exec2 $CTID "cp /etc/apt/apt.conf.d/50unattended-upgrades /etc/apt/apt.conf.d/unattended-upgrades.50.bak"
 
 read -r -d '' VAR <<'END'
 cat > /etc/apt/apt.conf.d/50unattended-upgrades <<EOF
@@ -139,12 +181,12 @@ Unattended-Upgrade::Remove-Unused-Dependencies "false";
 Unattended-Upgrade::Automatic-Reboot "false";
 EOF
 END
-echo "$VAR" | vzctl exec $CTID -
+echo "$VAR" | vzctl exec2 $CTID -
 }
 
 email(){
 	# sending email alerts
-	vzctl exec $CTID "apt-get install ssmtp -y"
+	vzctl exec2 $CTID "apt-get install ssmtp -y"
 
 read -r -d '' VAR <<'END'
 cat > /etc/ssmtp/ssmtp.conf <<EOF
@@ -158,21 +200,21 @@ AuthPass=$PASS
 FromLineOverride=YES
 EOF
 END
-echo "$VAR" | vzctl exec $CTID -
+echo "$VAR" | vzctl exec2 $CTID -
 	
-	vzctl exec $CTID "chmod 640 /etc/ssmtp/ssmtp.conf"
+	vzctl exec2 $CTID "chmod 640 /etc/ssmtp/ssmtp.conf"
 
 read -r -d '' VAR <<'END'
 cat > /etc/ssmtp/revaliases <<EOF
 root:$EMAIL:smtp.gmail.com:587
 EOF
 END
-	echo "$VAR" | vzctl exec $CTID -
+	echo "$VAR" | vzctl exec2 $CTID -
 }
 
 fail2ban(){
 	# Install fail2ban
-	vzctl exec $CTID "apt-get install fail2ban -y"
+	vzctl exec2 $CTID "apt-get install fail2ban -y"
 
 read -r -d '' VAR <<'END'
 cat > /etc/fail2ban/jail.local <<EOF
@@ -202,16 +244,16 @@ logpath  = /var/log/auth.log
 maxretry = 6
 EOF
 END
-echo "$VAR" | vzctl exec $CTID -
+echo "$VAR" | vzctl exec2 $CTID -
 	# restart fail2ban
-	vzctl exec $CTID "/etc/init.d/fail2ban restart"
+	vzctl exec2 $CTID "/etc/init.d/fail2ban restart"
 }
 
 cleanup(){
 	# remove unnecessary files
-	vzctl exec $CTID "apt-get autoremove"
-	vzctl exec $CTID "apt-get autoclean"
-	vzctl exec $CTID "apt-get clean"
+	vzctl exec2 $CTID "apt-get autoremove"
+	vzctl exec2 $CTID "apt-get autoclean"
+	vzctl exec2 $CTID "apt-get clean"
 	# clear logs
 
 }
@@ -223,7 +265,7 @@ createtemplate(){
 	mkdir /root/template
 	rsync -avz /var/lib/vz/private/$CTID/ /root/template/
 	rm /root/template/aquota*
-	tar -czvf /root/ubuntu-12.04-x86_64_`date "+%Y%m%d`.tar.gz /root/template/
+	tar -czvf /root/ubuntu-12.04-x86_64_`date "+%Y%m%d"`.tar.gz /root/template/
 }
 
 main
