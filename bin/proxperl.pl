@@ -7,41 +7,17 @@
 # Remy van Elst created the original version in bash
 # https://raymii.org/cms/p_Proxbash_-_Bash_script_to_manage_Proxmox_VE
 #
-# OSX install macports
-# port install p5.8-math-*
-# port install p5.8-crypt-*
-#
-# Debian
-# apt-get install build-essential libmath-gmp-perl pari-gp libnet-ssh-perl libmath-bigint-perl libswitch-perl libyaml-perl libnet-ssh2-perl
-# wget http://launchpadlibrarian.net/10329937/libnet-ssh-perl-perl_1.30-1_all.deb
-# dpkg -i libnet-ssh-perl-perl_1.30-1_all.deb
+# Macports: 
+# Debian: libnet-ssh-perl
+# CPAN: Net::SSH
 
 use strict();
 use warnings;
 use Switch;
-use Net::SSH::Perl;
+use Net::SSH qw(sshopen3);
 
-our $host = "chelsea.cs.uchicago.edu";
-my $port = 22;
-my $user = "root";
-# my $pass = "teiG7acu";
-my $identity = "$ENV{HOME}/.ssh/id_rsa";
-
-my %sshargs = (
-   protocol       => 2,
-   port           => $port,
-   identity_files => [ $identity ],
-   debug          => 0,
-   interactive    => 0,
-   options        => [ "BatchMode yes" ],
-);
-
-# create new host to ssh into
-$ssh = Net::SSH::Perl->new($host, %sshargs);
-# now open a connection
-$ssh->login($user, %sshargs) || die("SSH: Could not login");
-# to send a command
-# my($stdout, $stderr, $exit) = $ssh->cmd($cmd);
+our $host = "10.13.37.202";
+our $user = "root";
 
 #sub createct(){}
 #sub startct(){}
@@ -56,6 +32,7 @@ $ssh->login($user, %sshargs) || die("SSH: Could not login");
 #sub get_cttemplate_list(){}
 #sub get_iso_list(){}
 
+#print(get_cluster_nextid());
 sub get_cluster_nextid() {
 # usage: my $x = get_cluster_nextid();
 # get next id from server, if exit code is 0 return the ID, otherwise return 0/false
@@ -64,11 +41,11 @@ sub get_cluster_nextid() {
 
 	# If the caller does not specify a host use $host configured above
    my $host = shift || $host;
-	
 	my($stdout, $stderr, $exit) = send_command($host, "pvesh get /cluster/nextid");
+
 	# matching for: "122"
-	my $pattern = qr/"(\d{3,})"/;
-	
+	my $pattern = q("(\d{3,})");
+
 	# save the filtered array to @tmp
 	# In this case it will only have one value at @nextid[0]
 	if ( @nextid = array_pattern_filter($pattern, $stdout, $stderr, $exit)){
@@ -80,22 +57,21 @@ sub get_cluster_nextid() {
 	}
 }
 
-print(get_ct_list());
-
+# print(get_ct_list());
 sub get_ct_list(){
 # Returns an array of all CTs on the connected node.
-	my @ctlist;
+	my @ctlist = 0;
 	my $count = 0;	
 	my @nodes = get_cluster_nodes();
 
 	# get list of cts on each node
 	# For each node...
-	foreach (@nodes){
+	for (my $i = 0; $i <= $#nodes; $i++){
 		# ssh into $_ and get stdout, stderr and the exit code
-		my($stdout, $stderr, $exit) = send_command($_, "pvesh get /nodes/$_/openvz");
+		my($stdout, $stderr, $exit) = send_command($nodes[$i], "pvesh get /nodes/$nodes[$i]/openvz");
 
 		# We are looking for this pattern: "vmid" : "109"
-		my $pattern = qr/"vmid" : "(\d{3,})"/m;	
+		my $pattern = q("vmid" : "(\d{3,})");
 	
 		# Append the returned array to our main ct list (@ctlist). If the return code is not 0.
 		if ( my @tmp = array_pattern_filter($pattern, $stdout, $stderr, $exit)){
@@ -108,7 +84,8 @@ sub get_ct_list(){
 
 
 # sub get_vm_list(){}
-
+my @tmp = get_cluster_nodes($host);
+print_array(@tmp);
 sub get_cluster_nodes(){
 # Returns an array of all nodes in the cluster
 
@@ -122,7 +99,7 @@ sub get_cluster_nodes(){
 	if ($exit == 0 ){
 	
 		# match anything in between the quotes: "node" : "nodename",
-		my $pattern = qr/"node" : "(.*)",/;
+		my $pattern = '"node" : "(.*)",';
 
 		# save returned array to nice variable name
 		my @nodes = array_pattern_filter($pattern, $stdout, $stderr, $exit);
@@ -136,19 +113,19 @@ sub get_cluster_nodes(){
 	if ( @nodes ){ return @nodes; } else { return 0; }
 }
 
+
+
 sub send_command(){
 # sends a command to a given hoset and return stdout, stderr, and exit code
-	my($host, $command) = @_;
-	
-	# create new connection to given host
-	my $ssh = Net::SSH::Perl->new($host, %sshargs);
+   my($host, $command) = @_;
 
-	# now open a connection
-	$ssh->login($user, %sshargs) || die("SSH: Could not login");
+   my $pid = sshopen3("$user\@$host", undef, *OUT, *ERR, $command);
+   waitpid( $pid, 0 ) or die "ERROR: $!\n";
+   my $exit = $?;
+   my $stdout = do { local $/; <OUT> };
+   my $stderr = do { local $/; <ERR> };
 
-	# send $command and return stdout, stderr, and exit code
-	my($stdout, $stderr, $exit) = $ssh->cmd("$command");
-	return($stdout, $stderr, $exit);
+   return($stdout, $stderr, $exit);
 }
 
 sub array_pattern_filter(){
@@ -157,7 +134,7 @@ sub array_pattern_filter(){
 	my($pattern, $stdout, $stderr, $exit) = @_;
 
 	if (!$exit) {
-		# perl magic to return an array that is filtered on $pattern
+		# perl magic to return an array that is filtered on $pattern which is a string.
 		# This returns an array.
 		return ( $stdout =~ /$pattern/gs);
 	} else {
