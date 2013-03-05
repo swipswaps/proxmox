@@ -16,7 +16,7 @@ use warnings;
 use Switch;
 use Net::SSH qw(sshopen3);
 
-our $host = "10.13.37.202";
+our $host = "chelsea.cs.uchicago.edu";
 our $user = "root";
 
 #sub createct(){}
@@ -84,8 +84,8 @@ sub get_ct_list(){
 
 
 # sub get_vm_list(){}
-my @tmp = get_cluster_nodes($host);
-print_array(@tmp);
+#my @tmp = get_cluster_nodes($host);
+#print_array(@tmp);
 sub get_cluster_nodes(){
 # Returns an array of all nodes in the cluster
 
@@ -99,7 +99,7 @@ sub get_cluster_nodes(){
 	if ($exit == 0 ){
 	
 		# match anything in between the quotes: "node" : "nodename",
-		my $pattern = '"node" : "(.*)",';
+		my $pattern = qr/"node" : "(.*)",/;
 
 		# save returned array to nice variable name
 		my @nodes = array_pattern_filter($pattern, $stdout, $stderr, $exit);
@@ -117,7 +117,7 @@ sub get_cluster_nodes(){
 
 sub send_command(){
 # sends a command to a given hoset and return stdout, stderr, and exit code
-   my($host, $command) = @_;
+   my($user, $host, $command) = @_;
 
    my $pid = sshopen3("$user\@$host", undef, *OUT, *ERR, $command);
    waitpid( $pid, 0 ) or die "ERROR: $!\n";
@@ -127,6 +127,9 @@ sub send_command(){
 
    return($stdout, $stderr, $exit);
 }
+$command = "pvesh get /nodes";
+my($stdout, $stderr, $exit) = send_command($user, $host, $command);
+print $stdout;
 
 sub array_pattern_filter(){
 # Function takes an input pattern, stdout, stderr and an exit code
