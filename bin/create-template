@@ -93,15 +93,31 @@ cd "$CTDIR/$CTID"
 #Generate a unique set of ssh (host) keys.
 rm -f etc/ssh/ssh_host_*
 
-cat << EOF > etc/rc2.d/S15ssh_gen_host_keys
-#!/bin/sh
-ssh-keygen -f /etc/ssh/ssh_host_rsa_key -t rsa -N ''
-ssh-keygen -f /etc/ssh/ssh_host_dsa_key -t dsa -N ''
-ssh-keygen -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -N ''
+cat <<EOF > etc/rc.local
+#!/bin/sh -e
+# /etc/rc.local
+bash /var/tmp/ssh_gen_host_keys
+exit 0
+EOF
+
+cat << EOF > var/tmp/ssh_gen_host_keys
+#!/bin/bash
+for m in rsa dsa ecdsa
+do
+	ssh-keygen -A -t $m -f "/etc/ssh/ssh_host_$m_key"
+done
+
+cat << FILE > /etc/rc.local
+#!/bin/sh -e
+# /etc/rc.local
+
+exit 0 
+FILE
+
 rm -f \$0
 EOF
 
-chmod +x etc/rc2.d/S15ssh_gen_host_keys 
+chmod +x var/tmp/ssh_gen_host_keys 
 
 echo "Start creating Template"
 sleep 5
