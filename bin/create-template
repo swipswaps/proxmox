@@ -2,7 +2,7 @@
 
 CTID="$1"
 NAME="$2"
-DEFAULTNAME="ubuntu-12.04-standard_12.04_amd64.tar.gz"
+DEFAULTNAME="template-`date +%F`.tar.gz"
 CTDIR="/var/lib/vz/private"
 TEMPLATEDIR="/var/lib/vz/template/cache"
 
@@ -106,7 +106,7 @@ chmod +x etc/rc2.d/S15ssh_gen_host_keys
 echo "Start creating Template"
 sleep 5
 
-tar -czvf "$TEMPLATEDIR/$NAME" .
+tar -czf "$TEMPLATEDIR/$NAME" .
 
 echo "Done Packing up the tar archive"
 sleep 3
