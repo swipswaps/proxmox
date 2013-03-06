@@ -1,4 +1,5 @@
 #!/bin/bash
+# script to convert diskt images to qcow2
 
 # $ qemu-img convert -O raw diskimage.qcow2 diskimage.raw
 
