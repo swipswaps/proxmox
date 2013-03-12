@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# for use on cs.uchicago.edu domain only
+
+HOSTNAME=`hostname -f`
+DATE=`date +%F`
+
+df -h | egrep -v 'mnt|128.135' | egrep "pve-root|pve-data|backup" | awk '{ print $5 " " $6 " " $1 }' | while read output;
+do
+  echo $output
+  usep=$(echo $output | awk '{ print $1}' | cut -d'%' -f1  )
+  partition=$(echo $output | awk '{ print $2 }' )
+  if [ $usep -ge 90 ]; then
+     echo "Running out of space \"$partition ($usep%)\" on $HOSTNAME. If this is not addressed VMs will encounter io-errors." |
+     mail -s "Alert: $HOSTNAME almost out of disk space $usep%" techstaff@cs.uchicago.edu
+  fi
+done
+
