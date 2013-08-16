@@ -1,0 +1,18 @@
+Proxmox:
+
+vlan tagging veneth or kvm
+http://pve.proxmox.com/wiki/Vlan
+
+clan tagging at the vmbr:
+http://c-nergy.be/blog/?p=1134
+
+DD Wrt:
+
+Go to:
+Setup -> Networking 
+First row is Tagging. Add tag and assign it to a port
+For IP and config save and apply
+
+At the bottom of the page is Port Setup
+Click Network configuration YOURPORT.YOURTAG
+
