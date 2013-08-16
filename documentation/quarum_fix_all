@@ -1,0 +1,37 @@
+Peetaur's Proxmox Quorum Magic 'Fix All'.
+========================================
+ 
+restarting these on the failed node, and the whole cluster might bring back quorum, fix corosync, and fix the red lights problem in the GUI. It's like rebooting without interrupting the VMs (reboot proxmox parts only).
+    To create this sequence, I used the order in /etc/rc2.d/, and then I tinkered until it worked:
+ 
+    Consider disabling HA first.
+   
+    The procedure:
+        on all nodes, restart:
+            pve-cluster, cman, pvedaemon, pvestatd, pve-manager
+       
+        on all nodes, restart (again):
+            pve-cluster
+ 
+    The procedure again as commands:
+        all nodes (fix quorum+lights on other nodes; requires quorum on one node):
+            /etc/init.d/pve-cluster restart
+            /etc/init.d/cman restart
+            /etc/init.d/pvedaemon restart
+            /etc/init.d/pvestatd restart
+            /etc/init.d/pve-manager restart
+       
+        all nodes again (makes /etc/pve rw; wait for step 1 to finish first):
+            /etc/init.d/pve-cluster restart
+       
+    NOTE: if you run
+        /etc/init.d/pve-manager stop
+        then it says it is stopping all the vms. So only use "restart", not "stop" "start"
+   
+   
+    short script and description
+        My procedure for getting the green lights back, plus quorum and everything (possibly you need quorum on at least one node before you start) is:
+        1. on all nodes (fix quorum+lights on other nodes; requires quorum on one node):
+            for n in pve-cluster cman pvedaemon pvestatd pve-manager; do /etc/init.d/$n restart; done
+        2. on all nodes (makes /etc/pve rw; wait for step 1 to finish first):
+            /etc/init.d/pve-cluster restart
