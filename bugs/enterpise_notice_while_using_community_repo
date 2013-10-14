@@ -3,3 +3,12 @@
 # 2013-08-26
 # Stop enterprise subscription notification from showing up before login. version 3.1
 sed -i "/if (data.status !== 'Active')/i\ data.status = 'Active';" /usr/share/pve-manager/ext4/pvemanagerlib.js
+
+exit 0
+
+
+# ansible task to remove the above:
+root@rserver:~/ansible_playbooks# cat roles/proxmox/tasks/main.yml 
+---
+ - name: remove proxmox subscription notice
+   lineinfile: dest='/usr/share/pve-manager/ext4/pvemanagerlib.js' regexp="if \(data.status !== 'Active'\) {" line="if (false) {" state=present
