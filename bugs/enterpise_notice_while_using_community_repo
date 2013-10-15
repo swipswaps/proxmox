@@ -10,7 +10,6 @@ exit 0
 # ansible task to remove the above:
 root@rserver:~/ansible_playbooks# cat roles/proxmox/tasks/main.yml 
 ---
-
  - name: remove proxmox subscription notice
    lineinfile: dest='/usr/share/pve-manager/ext4/pvemanagerlib.js' 
      backrefs=yes
@@ -19,4 +18,3 @@ root@rserver:~/ansible_playbooks# cat roles/proxmox/tasks/main.yml
      state=present 
      create=no
      backup=yes
-     #if (data.status !== 'Active') {
